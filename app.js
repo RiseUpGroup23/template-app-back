@@ -13,7 +13,11 @@ app.use(cors());
 
 mongoose.connect(mongoDB).catch((err) => console.error(err));
 
+var configRouter = require('./routes/config')
+
 // Rutas
+
+app.use('/', configRouter)
 
 // Manejo de errores
 app.use((err, req, res, next) => {
