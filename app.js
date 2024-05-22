@@ -5,7 +5,7 @@ const cors = require("cors");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const mongoDB = process.env.DBURL || "mongodb+srv://riseup123:2CHKNUZO1AaiSeLr@baseriseup.yfxwqd3.mongodb.net/";
+const mongoDB = process.env.DBURL || "mongodb+srv://riseup123:2CHKNUZO1AaiSeLr@baseriseup.yfxwqd3.mongodb.net/app-peluqueria";
 
 app.use(express.json());
 app.use(morgan("dev"));
