@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const timeAvailavilitySchema = new Schema({
   day: {
-    type: [String],
+    type: {String},
     required: true,
     enum: [
       "Monday",
