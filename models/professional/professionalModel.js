@@ -1,17 +1,15 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const timeAvailabilitySchema = require('./timeAvailabilitySchema')
-const appointmentSchema = require('./appointmentSchema')
-const typeOfServiceSchema = require('./typeOfServiceSchema')
 
 const professionalSchema = new Schema({
   name: { type: String, required: true },
   lastname: { type: String, required: true },
   email: { type: String, required: true },
   phoneNumber: { type: String, required: true },
-  timeAvailability: { type: [timeAvailabilitySchema], required: true },
-  appointmentsOfTheDay: { type: [appointmentSchema], required: false },
-  typesOfServices: { type: [typeOfServiceSchema], required: true },
+  appointments: [{ type: Schema.Types.ObjectId, ref: 'Appointment', required: false }],
+  timeAvailabilities: [{ type: Schema.Types.ObjectId, ref: 'TimeAvailability', required: false }],
+  typesOfServices: [{ type: Schema.Types.ObjectId, ref: 'TypeOfService', required: false }]
+
 });
 
 const Professional = mongoose.model("Professional", professionalSchema);

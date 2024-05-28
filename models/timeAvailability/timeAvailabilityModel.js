@@ -19,6 +19,7 @@ const timeAvailavilitySchema = new Schema({
   finalHour: { type: String, required: true },
   secondInitialHour: { type: String, required: false },
   SecondFinalHour: { type: String, required: false },
+  professional: { type: Schema.Types.ObjectId, ref: 'Professional' }
 });
 
 const TimeAvailavility = mongoose.model(
