@@ -2,24 +2,10 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const timeAvailavilitySchema = new Schema({
-  day: {
-    type: {String},
-    required: true,
-    enum: [
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ],
-  },
-  initialHour: { type: String, required: true },
-  finalHour: { type: String, required: true },
-  secondInitialHour: { type: String, required: false },
-  SecondFinalHour: { type: String, required: false },
-  professional: { type: Schema.Types.ObjectId, ref: 'Professional' }
+  initialHour: { type: String, default: "9:00"},
+  finalHour: { type: String, default: "13:00"},
+  secondInitialHour: { type: String, default: "17:00"},
+  SecondFinalHour: { type: String, default: "21:00"},
 });
 
 const TimeAvailavility = mongoose.model(
@@ -27,4 +13,4 @@ const TimeAvailavility = mongoose.model(
   timeAvailavilitySchema
 );
 
-module.exports = { TimeAvailavility };
+module.exports = { TimeAvailavility, timeAvailavilitySchema };
