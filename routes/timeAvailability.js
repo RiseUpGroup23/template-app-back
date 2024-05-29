@@ -5,11 +5,9 @@ const { Professional } = require("../models/professional/professionalModel");
 //time tiene valores default asi que solo creo put
 router.put("/timeAvailabilities/:id", async (req, res) => {
   try {
-    const update = { timeAvailabilities: req.body.timeAvailabilities };
-
     const professional = await Professional.findByIdAndUpdate(
       req.params.id,
-      update,
+      { timeAvailabilities: req.body.timeAvailabilities },
       { new: true, runValidators: true }
     );
     if (!professional) {

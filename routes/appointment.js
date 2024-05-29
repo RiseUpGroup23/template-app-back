@@ -46,7 +46,10 @@ router.post("/appointments", async (req, res) => {
 //get
 router.get("/appointments", async (req, res) => {
   try {
-    const appointments = await Appointment.find().populate("customer"); // faltan dos populate o con coma dentro del parentesis
+    const appointments = await Appointment.find()
+      .populate("customer")
+      .populate("professional")
+      .populate("typeOfService");
     res.status(200).send(appointments);
   } catch (error) {
     res.status(500).send(error);
@@ -57,9 +60,10 @@ router.get("/appointments", async (req, res) => {
 //ID
 router.get("/appointments/:id", async (req, res) => {
   try {
-    const appointment = await Appointment.findById(req.params.id).populate(
-      "customer"
-    );
+    const appointment = await Appointment.findById(req.params.id)
+      .populate("customer")
+      .populate("professional")
+      .populate("typeOfService");
     if (!appointment) {
       return res.status(404).send();
     }
@@ -72,9 +76,15 @@ router.get("/appointments/:id", async (req, res) => {
 // Actualizar
 router.put("/appointments/:id", async (req, res) => {
   try {
+
+    const date = req.body.date; // "YYYY-MM-DD"
+    const time = req.body.time; //  "HH:MM"
+    const dateAndTime = date + "T" + time + ":00"; // Formato: "YYYY-MM-DDTHH:MM:SS"
+    const dateGMT3 = new Date(dateAndTime + "-03:00");
+
     const appointment = await Appointment.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { date: dateGMT3 },
       { new: true, runValidators: true }
     );
     if (!appointment) {
