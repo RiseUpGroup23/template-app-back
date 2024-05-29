@@ -15,12 +15,51 @@ router.post("/professionals", async (req, res) => {
 
 router.get("/professionals", async (req, res) => {
     try {
-    const professional = await Professional.find()
+    const professional = await Professional.find().populate('TypesOfServices');
 
     res.status(200).send(professional);
     } catch (error) {
     res.status(500).send(error);
     }
 }) 
+
+ //ID
+ router.get("/professionals/:id", async (req, res) => {
+    try {
+      const professional = await Professional.findById(req.params.id);
+      if (!professional) {
+        return res.status(404).send();
+      }
+      res.status(200).send(professional);
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  });
+  
+  // Actualizar
+  router.put("/professionals/:id", async (req, res) => {
+    try {
+      const professional = await Professional.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+      if (!professional) {
+        return res.status(404).send();
+      }
+      res.status(200).send(professional);
+    } catch (error) {
+      res.status(400).send(error);
+    }
+  });
+  
+  //delete
+  router.delete("/professionals/:id", async (req, res) => {
+    try {
+      const professional = await Professional.findByIdAndDelete(req.params.id).populate('TypesOfServices');;
+      if (!professional) {
+        return res.status(404).send();
+      }
+      res.status(200).send(professional);
+    } catch (error) {
+      res.status(500).send(error);
+    }
+  });
 
 module.exports = router;
