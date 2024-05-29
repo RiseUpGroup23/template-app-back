@@ -6,9 +6,6 @@ const customerSchema = new Schema({
   lastname: { type: String, required: true },
   phoneNumber: { type: String, required: true },
   email: { type: String, required: false },
-  appointments: [
-    { type: Schema.Types.ObjectId, ref: "Appointment", required: false },
-  ],
 });
 
 const Customer = mongoose.model("Customer", customerSchema);

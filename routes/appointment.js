@@ -13,10 +13,14 @@ router.post("/appointments", async (req, res) => {
       return res.status(404).send(error);
     }
 
+    // sacar disponibilidad , y turnos del dia (buscar todos los turnos que tengan como id de ese profesional ordenados por hora) 
+
     const typeOfService = await TypeOfService.findById(req.body.typeOfService);
     if (!typeOfService) {
       return res.status(404).send(error);
     }
+
+    //duracion del tipo de servicio sumarlas a la hora (tiempo en minutos)
 
     let customer = await Customer.findById(req.body.customer);
     if (!customer) {
@@ -28,6 +32,8 @@ router.post("/appointments", async (req, res) => {
     const time = req.body.time; //  "HH:MM"
     const dateAndTime = date + "T" + time + ":00"; // Formato: "YYYY-MM-DDTHH:MM:SS"
     const dateGMT3 = new Date(dateAndTime + "-03:00");
+
+    //no puede pasar misma date y profesional
 
     const appointment = new Appointment({
       date: dateGMT3,
@@ -84,7 +90,7 @@ router.put("/appointments/:id", async (req, res) => {
 
     const appointment = await Appointment.findByIdAndUpdate(
       req.params.id,
-      { date: dateGMT3 },
+      { date: dateGMT3 }, //que se pueda modificar todo
       { new: true, runValidators: true }
     );
     if (!appointment) {
