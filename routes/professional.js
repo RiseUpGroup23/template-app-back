@@ -62,4 +62,26 @@ router.get("/professionals", async (req, res) => {
     }
   });
 
+  //agregar typeofser
+  router.put("/professionals&services/:id", async (req, res) => {
+    const serviceId = req.body.serviceId;
+
+    try {
+        const service = await TypeOfService.findById(serviceId);
+        if (!service) {
+            return res.status(404).send(error);
+        }
+
+        const professional = await Professional.findByIdAndUpdate(
+            req.params.id,
+            { $addToSet: { typesOfServices: serviceId } }, 
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).send(professional);
+    } catch (error) {
+        res.status(400).send(error);
+    }
+});
+
 module.exports = router;

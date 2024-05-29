@@ -1,14 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const { Appointment } =  require('../models/appointment/appointmentModel')
+const { Appointment } =  require('../models/appointment/appointmentModel');
+const { Customer } = require('../models/customers/customerModel');
+const { Professional } = require('../models/professional/professionalModel');
+const { TypeOfService } = require('../models/typeOfService/typeOfServiceModel');
 
 //post
 router.post("/appointments", async (req, res) => {
   try {
-    //verificacion para ver si el cliente existe (buscar por telefono)
-    //crear en el caso de que no (req.body.customer)
+    const professional = await Professional.findById(req.body.professional);
 
-    //customerid 
+    const typeOfService = await TypeOfService.findById(req.body.typeOfService);
+
+    const customer = await Customer.findById(req.body.customer);
+    if (!customer) {
+      const newCustomer = new Customer(req.body.customer);
+      await newCustomer.save();
+    }
+
+    
+
+
+
+
+
+
+
 
     const appointment = new Appointment(
 req.body
@@ -23,7 +40,7 @@ req.body
 //get
 router.get("/appointments", async (req, res) => {
   try {
-    const appointments = await Appointment.find().populate('customer');
+    const appointments = await Appointment.find().populate('customer');// faltan dos populate o con coma dentro del parentesis
     res.status(200).send(appointments);
   } catch (error) {
     res.status(500).send(error);
