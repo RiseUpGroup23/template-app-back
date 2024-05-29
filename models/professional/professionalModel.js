@@ -1,7 +1,13 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const {timeAvailabilitySchema} = require('../models/timeAvailability/timeAvailabilityModel')
+const timeAvailabilitySchema = require('./timeAvailability/timeAvailabilitySchema')
 
+const defaultTimeAvailability = {
+  initialHour: "09:00",
+  finalHour: "13:00",
+  secondInitialHour: "17:00",
+  secondFinalHour: "21:00"
+};
 
 const professionalSchema = new Schema({
   name: { type: String, required: true },
@@ -9,13 +15,13 @@ const professionalSchema = new Schema({
   email: { type: String, required: true },
   phoneNumber: { type: String, required: true },
   timeAvailabilities: {
-    monday: { type: timeAvailabilitySchema, required: true },
-    tuesday: { type: timeAvailabilitySchema, required: true },
-    wednesday: { type: timeAvailabilitySchema, required: true },
-    thursday: { type: timeAvailabilitySchema, required: true },
-    friday: { type: timeAvailabilitySchema, required: true },
-    saturday: { type: timeAvailabilitySchema, required: true },
-    sunday: { type: timeAvailabilitySchema, required: true }
+    monday: { type: timeAvailabilitySchema, default: () => defaultTimeAvailability },
+    tuesday: { type: timeAvailabilitySchema, default: () => defaultTimeAvailability },
+    wednesday: { type: timeAvailabilitySchema, default: () => defaultTimeAvailability },
+    thursday: { type: timeAvailabilitySchema, default: () => defaultTimeAvailability },
+    friday: { type: timeAvailabilitySchema, default: () => defaultTimeAvailability },
+    saturday: { type: timeAvailabilitySchema, default: () => defaultTimeAvailability },
+    sunday: { type: timeAvailabilitySchema, default: () => defaultTimeAvailability }
   },
   typesOfServices: [{ type: Schema.Types.ObjectId, ref: 'TypeOfService', required: false }]
 });

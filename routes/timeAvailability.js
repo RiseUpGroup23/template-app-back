@@ -1,16 +1,24 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { TimeAvailability } = require('../models/timeAvailability/timeAvailabilityModel')
+const { Professional } = require("../models/professional/professionalModel");
 
-router.post("/typesOfServices", async (req, res) => {
-    try {
-    const timeAvailability = new TimeAvailability(req.body)
+//time tiene valores default asi que solo creo put
+router.put("/timeAvailabilities/:id", async (req, res) => {
+  try {
+    const update = { timeAvailabilities: req.body.timeAvailabilities };
 
-    await timeAvailability.save();
-    res.status(201).send(timeAvailability);
-    } catch (error) {
-    res.status(400).send(error);
+    const professional = await Professional.findByIdAndUpdate(
+      req.params.id,
+      update,
+      { new: true, runValidators: true }
+    );
+    if (!professional) {
+      return res.status(404).send();
     }
-}) 
+    res.status(200).send(professional);
+  } catch (error) {
+    res.status(400).send(error);
+  }
+});
 
 module.exports = router;
