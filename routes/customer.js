@@ -1,6 +1,6 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { Customer } =  require('../models/customers/customerModel')
+const { Customer } = require("../models/customers/customerModel");
 
 //post
 router.post("/customers", async (req, res) => {
@@ -16,12 +16,12 @@ router.post("/customers", async (req, res) => {
 //get
 router.get("/customers", async (req, res) => {
   try {
-    const customers = await Customer.find()
+    const customers = await Customer.find();
     res.status(200).send(customers);
   } catch (error) {
     res.status(500).send(error);
-console.log(error);
-}
+    console.log(error);
+  }
 });
 
 //ID
@@ -40,7 +40,10 @@ router.get("/customers/:id", async (req, res) => {
 // Actualizar
 router.put("/customers/:id", async (req, res) => {
   try {
-    const customer = await Customer.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const customer = await Customer.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
     if (!customer) {
       return res.status(404).send();
     }

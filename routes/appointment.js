@@ -1,35 +1,41 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { Appointment } =  require('../models/appointment/appointmentModel');
-const { Customer } = require('../models/customers/customerModel');
-const { Professional } = require('../models/professional/professionalModel');
-const { TypeOfService } = require('../models/typeOfService/typeOfServiceModel');
+const { Appointment } = require("../models/appointment/appointmentModel");
+const { Customer } = require("../models/customers/customerModel");
+const { Professional } = require("../models/professional/professionalModel");
+const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
 
 //post
 router.post("/appointments", async (req, res) => {
   try {
     const professional = await Professional.findById(req.body.professional);
-
-    const typeOfService = await TypeOfService.findById(req.body.typeOfService);
-
-    const customer = await Customer.findById(req.body.customer);
-    if (!customer) {
-      const newCustomer = new Customer(req.body.customer);
-      await newCustomer.save();
+    if (!professional) {
+      return res.status(404).send(error);
     }
 
-    
+    const typeOfService = await TypeOfService.findById(req.body.typeOfService);
+    if (!typeOfService) {
+      return res.status(404).send(error);
+    }
 
+    let customer = await Customer.findById(req.body.customer);
+    if (!customer) {
+      const newCustomer = new Customer(req.body.customer);
+      customer = await newCustomer.save();
+    }
 
+    const date = req.body.date; // "YYYY-MM-DD"
+    const time = req.body.time; //  "HH:MM"
+    const dateAndTime = date + "T" + time + ":00"; // Formato: "YYYY-MM-DDTHH:MM:SS"
+    const dateGMT3 = new Date(dateAndTime + "-03:00");
 
+    const appointment = new Appointment({
+      date: dateGMT3,
+      professional: req.body.professional,
+      typeOfService: req.body.typeOfService,
+      customer: customer._id,
+    });
 
-
-
-
-
-    const appointment = new Appointment(
-req.body
-    );
     await appointment.save();
     res.status(201).send(appointment);
   } catch (error) {
@@ -40,18 +46,20 @@ req.body
 //get
 router.get("/appointments", async (req, res) => {
   try {
-    const appointments = await Appointment.find().populate('customer');// faltan dos populate o con coma dentro del parentesis
+    const appointments = await Appointment.find().populate("customer"); // faltan dos populate o con coma dentro del parentesis
     res.status(200).send(appointments);
   } catch (error) {
     res.status(500).send(error);
-console.log(error);
-}
+    console.log(error);
+  }
 });
 
 //ID
 router.get("/appointments/:id", async (req, res) => {
   try {
-    const appointment = await Appointment.findById(req.params.id);
+    const appointment = await Appointment.findById(req.params.id).populate(
+      "customer"
+    );
     if (!appointment) {
       return res.status(404).send();
     }
@@ -64,7 +72,11 @@ router.get("/appointments/:id", async (req, res) => {
 // Actualizar
 router.put("/appointments/:id", async (req, res) => {
   try {
-    const appointment = await Appointment.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const appointment = await Appointment.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
     if (!appointment) {
       return res.status(404).send();
     }
