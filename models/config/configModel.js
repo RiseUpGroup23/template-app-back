@@ -78,6 +78,7 @@ const ConfigSchema = new Schema({
       primary: { type: String, default: defaultStringValue },
       secondary: { type: String, default: defaultStringValue },
     },
+    shopName: { type: String, default: defaultStringValue }
   },
 });
 

@@ -28,23 +28,19 @@ router.post("/appointments", async (req, res) => {
       customer = await newCustomer.save();
     }
 
-    const date = req.body.date; // "YYYY-MM-DD"
-    const time = req.body.time; //  "HH:MM"
-    const dateAndTime = date + "T" + time + ":00"; // Formato: "YYYY-MM-DDTHH:MM:SS"
-    const dateGMT3 = new Date(dateAndTime + "-03:00");
-
     //no puede pasar misma date y profesional
 
     const appointment = new Appointment({
-      date: dateGMT3,
+      date: req.body.date,
       professional: req.body.professional,
       typeOfService: req.body.typeOfService,
-      customer: customer._id,
+      customer: req.body.customer || customer._id ,
     });
 
     await appointment.save();
     res.status(201).send(appointment);
   } catch (error) {
+    console.log(error);
     res.status(400).send(error);
   }
 });
