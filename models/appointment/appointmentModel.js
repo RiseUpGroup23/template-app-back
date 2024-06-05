@@ -6,7 +6,6 @@ const appointmentSchema = new Schema({
   professional: { type: Schema.Types.ObjectId, ref: "Professional" },
   typeOfService: { type: Schema.Types.ObjectId, ref: "TypeOfService" },
   //datos del cliente
-  customer: { type: Schema.Types.ObjectId, ref: "Customer" },
 });
 
 const Appointment = mongoose.model("Appointment", appointmentSchema);

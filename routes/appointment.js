@@ -1,46 +1,79 @@
 const express = require("express");
 const router = express.Router();
 const { Appointment } = require("../models/appointment/appointmentModel");
-const { Customer } = require("../models/customers/customerModel");
 const { Professional } = require("../models/professional/professionalModel");
 const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
 
 //post
 router.post("/appointments", async (req, res) => {
   try {
+    //prof?
     const professional = await Professional.findById(req.body.professional);
     if (!professional) {
-      return res.status(404).send(error);
+      return res.status(404).send({ error: "Professional not found" });
     }
 
-    // sacar disponibilidad , y turnos del dia (buscar todos los turnos que tengan como id de ese profesional ordenados por hora) 
-
+    //typeof?
     const typeOfService = await TypeOfService.findById(req.body.typeOfService);
     if (!typeOfService) {
-      return res.status(404).send(error);
+      return res.status(404).send({ error: "Type of Service not found" });
     }
 
-    //duracion del tipo de servicio sumarlas a la hora (tiempo en minutos)
+    // dia y hs de date
+    const dateString = req.body.date;
+    const date = new Date(dateString);
+    const dayOfWeek = [
+      "sunday",
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday"
+    ][date.getUTCDay()];
+    const hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
 
-    let customer = await Customer.findById(req.body.customer);
-    if (!customer) {
-      const newCustomer = new Customer(req.body.customer);
-      customer = await newCustomer.save();
+    //disponibilidad?
+    const availability = professional.timeAvailabilities[dayOfWeek];
+    if (!availability) {
+      return res.status(400).send({ error: "No availability for this day" });
     }
 
-    //no puede pasar misma date y profesional
+    // Convertir horas de disponibilidad a minutos para comparación (god)
+    const availabilityStart = parseInt(availability.initialHour.split(':')[0]) * 60 + parseInt(availability.initialHour.split(':')[1]);
+    const availabilityEnd = parseInt(availability.finalHour.split(':')[0]) * 60 + parseInt(availability.finalHour.split(':')[1]);
+    const availabilitySecondStart = parseInt(availability.secondInitialHour.split(':')[0]) * 60 + parseInt(availability.secondInitialHour.split(':')[1]);
+    const availabilitySecondEnd = parseInt(availability.secondFinalHour.split(':')[0]) * 60 + parseInt(availability.secondFinalHour.split(':')[1]);
 
-    const appointment = new Appointment({
-      date: req.body.date,
-      professional: req.body.professional,
-      typeOfService: req.body.typeOfService,
-      customer: req.body.customer || customer._id ,
+    const appointmentTime = hours * 60 + minutes;
+
+    // Verificar que la hora del turno esté dentro del rango de disponibilidad
+    const isAvailable = (appointmentTime >= availabilityStart && appointmentTime <= availabilityEnd) || (appointmentTime >= availabilitySecondStart && appointmentTime <= availabilitySecondEnd);
+    if (!isAvailable) {
+      return res.status(400).send({ error: "Appointment time is outside of professional's availability" });
+    }
+
+    // Buscar turnos existentes para el mismo profesional en el mismo día
+    const startOfDay = new Date(date.setUTCHours(0, 0, 0, 0));
+    const endOfDay = new Date(date.setUTCHours(23, 59, 59, 999));
+    const appointmentsOfDay = await Appointment.find({
+      professional: professional._id,
+      date: { $gte: startOfDay, $lte: endOfDay }
     });
 
+    // Verificar que no haya un turno en la misma fecha y hora
+    const existingAppointment = appointmentsOfDay.find(appt => appt.date.getTime() === new Date(dateString).getTime());
+    if (existingAppointment) {
+      return res.status(400).send({ error: "Appointment already exists for this professional at the specified date and time" });
+    }
+
+    const appointment = new Appointment(req.body);
     await appointment.save();
+
     res.status(201).send(appointment);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     res.status(400).send(error);
   }
 });
@@ -78,7 +111,6 @@ router.get("/appointments/:id", async (req, res) => {
 // Actualizar
 router.put("/appointments/:id", async (req, res) => {
   try {
-
     const date = req.body.date; // "YYYY-MM-DD"
     const time = req.body.time; //  "HH:MM"
     const dateAndTime = date + "T" + time + ":00"; // Formato: "YYYY-MM-DDTHH:MM:SS"
