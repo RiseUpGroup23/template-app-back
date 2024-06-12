@@ -4,7 +4,7 @@ const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
 
 router.post("/typesOfServices", async (req, res) => {
   try {
-    const typeOfService = new TypeOfService(req.body);
+    const typeOfService = new TypeOfService(req.body); // duracion en minutos
 
     await typeOfService.save();
     res.status(201).send(typeOfService);
