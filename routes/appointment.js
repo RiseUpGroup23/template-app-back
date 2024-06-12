@@ -62,7 +62,7 @@ router.post("/appointments", async (req, res) => {
       date: { $gte: startOfDay, $lte: endOfDay }
     });
 
-    // Verificar que no haya un turno en la misma fecha y hora
+    // turno al mismo date
     const existingAppointment = appointmentsOfDay.find(appt => appt.date.getTime() === new Date(dateString).getTime());
     if (existingAppointment) {
       return res.status(400).send({ error: "Appointment already exists for this professional at the specified date and time" });
