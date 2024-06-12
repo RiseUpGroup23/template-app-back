@@ -40,5 +40,5 @@ app.use((err, req, res, next) => {
 
 // Iniciar el servidor
 app.listen(PORT, () => {
-  console.log("luz verde");
+  console.log("luz verde")
 });
