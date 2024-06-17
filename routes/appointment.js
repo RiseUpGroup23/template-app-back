@@ -37,7 +37,7 @@ router.post("/appointments", async (req, res) => {
     // Verificar disponibilidad para el día
     const availability = professional.timeAvailabilities[dayOfWeek];
     if (!availability) {
-      return res.status(400).send({ error: "No availability for this day" });
+      return res.status(400).send({ error: "No availability" });
     }
 
     // Convertir las horas de disponibilidad a minutos
