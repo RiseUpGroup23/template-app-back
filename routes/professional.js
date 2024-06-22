@@ -58,10 +58,7 @@ router.delete("/professionals/:id", async (req, res) => {
   try {
     const professional = await Professional.findByIdAndDelete(
       req.params.id
-    ).populate("TypesOfServices");
-    if (!professional) {
-      return res.status(404).send();
-    }
+    )
     res.status(200).send(professional);
   } catch (error) {
     res.status(500).send(error);
