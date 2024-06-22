@@ -15,7 +15,7 @@ router.post("/professionals", async (req, res) => {
 
 router.get("/professionals", async (req, res) => {
   try {
-    const professional = await Professional.find();
+    const professional = await Professional.find().populate("typesOfServices");
 
     res.status(200).send(professional);
   } catch (error) {
