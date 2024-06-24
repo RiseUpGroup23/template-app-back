@@ -6,6 +6,7 @@ const timeAvailavilitySchema = new Schema({
   finalHour: { type: String },
   secondInitialHour: { type: String },
   secondFinalHour: { type: String },
+  active: { type: Boolean, default: true }
 });
 
 module.exports = timeAvailavilitySchema;
