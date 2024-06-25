@@ -61,6 +61,10 @@ const ConfigSchema = new Schema({
   reservationPrice: {
     type: Number,
   },
+  timeModule: {
+    //creamos un objeto appo? para esas dos cosas y por si sale algo mas o nelson mandela
+    type: Number,
+  },
   customization: {
     background: {
       backgroundImage: { type: String, default: defaultStringValue },
@@ -78,7 +82,7 @@ const ConfigSchema = new Schema({
       primary: { type: String, default: defaultStringValue },
       secondary: { type: String, default: defaultStringValue },
     },
-    shopName: { type: String, default: defaultStringValue }
+    shopName: { type: String, default: defaultStringValue },
   },
 });
 

@@ -14,6 +14,7 @@ const professionalSchema = new Schema({
   lastname: { type: String, required: true },
   email: { type: String, required: true },
   phoneNumber: { type: String, required: true },
+  appointmentInterval: { type: Number, default: 30 },
   timeAvailabilities: {
     monday: {
       type: timeAvailabilitySchema,
