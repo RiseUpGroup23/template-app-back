@@ -21,6 +21,7 @@ const appointmentRouter = require("./routes/appointment");
 const professionalRouter = require("./routes/professional");
 const typeOfServiceRouter = require("./routes/typeOfService");
 const cloudinaryRouter = require("./routes/cloudinary");
+const wpRouter = require("./routes/wp");
 
 // Rutas
 
@@ -28,7 +29,7 @@ app.use("/", configRouter);
 app.use("/", appointmentRouter);
 app.use("/", professionalRouter);
 app.use("/", typeOfServiceRouter);
-app.use("/", cloudinaryRouter);
+app.use("/", wpRouter);
 
 // Manejo de errores
 app.use((err, req, res, next) => {

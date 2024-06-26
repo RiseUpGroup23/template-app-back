@@ -145,7 +145,6 @@ router.post("/appointments", async (req, res) => {
 router.get("/appointments", async (req, res) => {
   try {
     const appointments = await Appointment.find()
-      .populate("customer")
       .populate("professional")
       .populate("typeOfService");
     res.status(200).send(appointments);
@@ -159,7 +158,6 @@ router.get("/appointments", async (req, res) => {
 router.get("/appointments/:id", async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id)
-      .populate("customer")
       .populate("professional")
       .populate("typeOfService");
     if (!appointment) {
