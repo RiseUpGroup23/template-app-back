@@ -18,8 +18,6 @@ mongoose.connect(mongoDB).catch((err) => console.error(err));
 
 const configRouter = require("./routes/config");
 const appointmentRouter = require("./routes/appointment");
-const customerRouter = require("./routes/customer");
-const timeAvailabilityRouter = require("./routes/timeAvailability");
 const professionalRouter = require("./routes/professional");
 const typeOfServiceRouter = require("./routes/typeOfService");
 const cloudinaryRouter = require("./routes/cloudinary");
@@ -28,8 +26,6 @@ const cloudinaryRouter = require("./routes/cloudinary");
 
 app.use("/", configRouter);
 app.use("/", appointmentRouter);
-app.use("/", customerRouter);
-app.use("/", timeAvailabilityRouter);
 app.use("/", professionalRouter);
 app.use("/", typeOfServiceRouter);
 app.use("/", cloudinaryRouter);
