@@ -63,24 +63,20 @@ router.post("/appointments", async (req, res) => {
       (appointmentTime >= availabilitySecondStart &&
         appointmentTime <= availabilitySecondEnd);
     if (!isAvailable) {
-      return res
-        .status(400)
-        .send({
-          error: "Appointment time is outside of professional's availability",
-        });
+      return res.status(400).send({
+        error: "Appointment time is outside of professional's availability",
+      });
     }
 
     // Verificar que la hora del turno esté en el intervalo correcto
     const interval = professional.appointmentInterval;
     const isWithinInterval =
-      ((appointmentTime - availabilityStart) % interval === 0) ||
-      ((appointmentTime - availabilitySecondStart) % interval === 0);
+      (appointmentTime - availabilityStart) % interval === 0 ||
+      (appointmentTime - availabilitySecondStart) % interval === 0;
     if (!isWithinInterval) {
-      return res
-        .status(400)
-        .send({
-          error: 'is out of range',
-        });
+      return res.status(400).send({
+        error: "is out of range",
+      });
     }
 
     // Calcular el startTime y endTime basado en la duración del servicio
@@ -105,12 +101,10 @@ router.post("/appointments", async (req, res) => {
       (appt) => appt.date.getTime() === new Date(dateString).getTime()
     );
     if (existingAppointment) {
-      return res
-        .status(400)
-        .send({
-          error:
-            "Appointment already exists for this professional at the specified date and time",
-        });
+      return res.status(400).send({
+        error:
+          "Appointment already exists for this professional at the specified date and time",
+      });
     }
 
     // Verificar solapamiento de citas
@@ -154,7 +148,7 @@ router.get("/appointments", async (req, res) => {
   }
 });
 
-//ID
+//get x id
 router.get("/appointments/:id", async (req, res) => {
   try {
     const appointment = await Appointment.findById(req.params.id)
@@ -169,25 +163,43 @@ router.get("/appointments/:id", async (req, res) => {
   }
 });
 
-// Actualizar
-router.put("/appointments/:id", async (req, res) => {
+//get x dia
+router.get("/appointments/day/:date", async (req, res) => {
   try {
-    const date = req.body.date; // "YYYY-MM-DD"
-    const time = req.body.time; //  "HH:MM"
-    const dateAndTime = date + "T" + time + ":00"; // Formato: "YYYY-MM-DDTHH:MM:SS"
-    const dateGMT3 = new Date(dateAndTime + "-03:00");
+    const date = new Date(req.params.date);
+    const startOfDay = new Date(date);
+    startOfDay.setUTCHours(0, 0, 0, 0);
+    const endOfDay = new Date(date);
+    endOfDay.setUTCHours(23, 59, 59, 999);
 
-    const appointment = await Appointment.findByIdAndUpdate(
-      req.params.id,
-      { date: dateGMT3 }, //que se pueda modificar todo
-      { new: true, runValidators: true }
-    );
-    if (!appointment) {
-      return res.status(404).send();
-    }
-    res.status(200).send(appointment);
+    const appointments = await Appointment.find({
+      date: { $gte: startOfDay, $lte: endOfDay },
+    })
+      .populate("professional")
+      .populate("typeOfService");
+
+    res.status(200).send(appointments);
   } catch (error) {
-    res.status(400).send(error);
+    res.status(500).send(error);
+  }
+});
+
+//get x mes
+router.get("/appointments/month/:year/:month", async (req, res) => {
+  try {
+    const { year, month } = req.params;
+    const startOfMonth = new Date(Date.UTC(year, month - 1, 1));
+    const endOfMonth = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+
+    const appointments = await Appointment.find({
+      date: { $gte: startOfMonth, $lte: endOfMonth },
+    })
+      .populate("professional")
+      .populate("typeOfService");
+
+    res.status(200).send(appointments);
+  } catch (error) {
+    res.status(500).send(error);
   }
 });
 
@@ -203,8 +215,5 @@ router.delete("/appointments/:id", async (req, res) => {
     res.status(500).send(error);
   }
 });
-
-module.exports = router;
-
 
 module.exports = router;

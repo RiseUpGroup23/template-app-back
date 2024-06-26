@@ -58,12 +58,13 @@ const ConfigSchema = new Schema({
       instagram: defaultStringValue,
     },
   },
-  reservationPrice: {
-    type: Number,
-  },
-  timeModule: {
-    //creamos un objeto appo? para esas dos cosas y por si sale algo mas o nelson mandela
-    type: Number,
+  appointment:{
+    reservationPrice: {
+      type: Number,
+    },
+    bannedDays: {
+      type:[]
+    }
   },
   customization: {
     background: {
