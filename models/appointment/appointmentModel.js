@@ -11,7 +11,6 @@ const appointmentSchema = new Schema({
     name: { type: String, required: false },
     lastname: { type: String, required: false },
     phoneNumber: { type: String, required: false },
-    email: { type: String, required: false },
   }
 });
 

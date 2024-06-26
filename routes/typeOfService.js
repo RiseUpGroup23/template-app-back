@@ -1,10 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
+const { ConfigModel } = require("../models/config/configModel");
 
 router.post("/typesOfServices", async (req, res) => {
   try {
-    const typeOfService = new TypeOfService(req.body); // duracion en minutos
+    const config = await ConfigModel.findOne();
+    const duration = config.timeModule * req.body.numberOfModules; // mandar cantidad de mdoulos y se guarda en minutos ya, opiniones????
+    const price = config.reservationPrice;
+
+    const typeOfService = new TypeOfService({
+      name: req.body.name,
+      duration: duration,
+      image: req.body,
+      price: price,
+    });
 
     await typeOfService.save();
     res.status(201).send(typeOfService);
