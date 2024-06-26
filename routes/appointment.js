@@ -5,7 +5,7 @@ const { Professional } = require("../models/professional/professionalModel");
 const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
 
 // post
-router.post("/appointments", async (req, res) => {
+const createOrUpdate = async (req, res, isUpdate = false) => {
   try {
     // Obtener el profesional
     const professional = await Professional.findById(req.body.professional);
@@ -75,7 +75,7 @@ router.post("/appointments", async (req, res) => {
       (appointmentTime - availabilitySecondStart) % interval === 0;
     if (!isWithinInterval) {
       return res.status(400).send({
-        error: "is out of range",
+        error: "Appointment time is out of the interval range",
       });
     }
 
@@ -97,14 +97,16 @@ router.post("/appointments", async (req, res) => {
     });
 
     // Verificar si ya existe una cita a la misma hora
-    const existingAppointment = appointmentsOfDay.find(
-      (appt) => appt.date.getTime() === new Date(dateString).getTime()
-    );
-    if (existingAppointment) {
-      return res.status(400).send({
-        error:
-          "Appointment already exists for this professional at the specified date and time",
-      });
+    if (!isUpdate) {
+      const existingAppointment = appointmentsOfDay.find(
+        (appt) => appt.date.getTime() === new Date(dateString).getTime()
+      );
+      if (existingAppointment) {
+        return res.status(400).send({
+          error:
+            "Appointment already exists for this professional at the specified date and time",
+        });
+      }
     }
 
     // Verificar solapamiento de citas
@@ -114,26 +116,45 @@ router.post("/appointments", async (req, res) => {
       return startTime < existingEndTime && endTime > existingStartTime;
     });
 
-    if (overlappingAppointment) {
+    if (overlappingAppointment && !isUpdate) {
       return res
         .status(400)
         .send({ error: "Appointment overlaps with an existing appointment" });
     }
 
-    // Crear y guardar la nueva cita
-    const appointment = new Appointment({
-      ...req.body,
-      startTime: startTime,
-      endTime: endTime,
-    });
-    await appointment.save();
+    if (isUpdate) {
+      // Actualizar
+      const appointment = await Appointment.findByIdAndUpdate(
+        req.params.id,
+        { ...req.body, startTime, endTime },
+        { new: true, runValidators: true }
+      );
+      if (!appointment) {
+        return res.status(404).send({ error: "Appointment not found" });
+      }
+      res.status(200).send(appointment);
+    } else {
+      // Crear y guardar la nueva cita
+      const appointment = new Appointment({
+        ...req.body,
+        startTime: startTime,
+        endTime: endTime,
+      });
+      await appointment.save();
 
-    res.status(201).send(appointment);
+      res.status(201).send(appointment);
+    }
   } catch (error) {
     console.error(error);
     res.status(400).send(error);
   }
-});
+};
+
+//post
+router.post("/appointments", (req, res) => createOrUpdate(req, res));
+
+//put
+router.put("/appointments/:id", (req, res) => createOrUpdate(req, res, true));
 
 //get
 router.get("/appointments", async (req, res) => {
