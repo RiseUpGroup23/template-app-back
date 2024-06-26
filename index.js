@@ -22,6 +22,7 @@ const customerRouter = require("./routes/customer");
 const timeAvailabilityRouter = require("./routes/timeAvailability");
 const professionalRouter = require("./routes/professional");
 const typeOfServiceRouter = require("./routes/typeOfService");
+const cloudinaryRouter = require("./routes/cloudinary");
 
 // Rutas
 
@@ -31,6 +32,7 @@ app.use("/", customerRouter);
 app.use("/", timeAvailabilityRouter);
 app.use("/", professionalRouter);
 app.use("/", typeOfServiceRouter);
+app.use("/", cloudinaryRouter);
 
 // Manejo de errores
 app.use((err, req, res, next) => {

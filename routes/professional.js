@@ -15,7 +15,7 @@ router.post("/professionals", async (req, res) => {
 
 router.get("/professionals", async (req, res) => {
   try {
-    const professional = await Professional.find();
+    const professional = await Professional.find().populate("typesOfServices");
 
     res.status(200).send(professional);
   } catch (error) {
@@ -58,10 +58,7 @@ router.delete("/professionals/:id", async (req, res) => {
   try {
     const professional = await Professional.findByIdAndDelete(
       req.params.id
-    ).populate("TypesOfServices");
-    if (!professional) {
-      return res.status(404).send();
-    }
+    )
     res.status(200).send(professional);
   } catch (error) {
     res.status(500).send(error);

@@ -83,6 +83,7 @@ const ConfigSchema = new Schema({
       secondary: { type: String, default: defaultStringValue },
     },
     shopName: { type: String, default: defaultStringValue },
+    twoColors: { type: Boolean, default: true }
   },
 });
 
