@@ -1,37 +1,16 @@
 var express = require('express');
 var router = express.Router();
 const cloudinary = require('cloudinary').v2;
-const { CloudinaryModel } = require("../models/cloudinary/cloudinaryModel")
 const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-router.post('/cloudinary/config', async (req, res) => {
-    try {
-        let existingConfig = await CloudinaryModel.findOne({})
-
-        if (!existingConfig) {
-            const newDoc = new CloudinaryModel({});
-            await newDoc.save();
-            existingConfig = newDoc
-        }
-        await CloudinaryModel.updateOne({}, { $set: req.body });
-        res.send("Configuration of images API updated successfully");
-
-    } catch (error) {
-        console.error("Error:", error);
-        res.status(500).send("Internal Server Error: POST of image configuration");
-    }
-})
-
 router.post('/cloudinary', upload.single('photo'), async (req, res) => {
     try {
-        const cloudinaryData = await CloudinaryModel.findOne({})
-        const { cloud, appKey, appToken } = cloudinaryData
-        cloudinary.config({
-            cloud_name: cloud,
-            api_key: appKey,
-            api_secret: appToken,
+        cloudinary.config({  // esto en un futuro a variables de entorno
+            cloud_name: "dwqcfuief",
+            api_key: "381134874894872",
+            api_secret: "XfgRi_QxAhGa01VnckWH7AAx9rE",
         });
 
         if (!req.file) {
