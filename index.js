@@ -29,6 +29,7 @@ app.use("/", configRouter);
 app.use("/", appointmentRouter);
 app.use("/", professionalRouter);
 app.use("/", typeOfServiceRouter);
+app.use("/", cloudinaryRouter);
 app.use("/", wpRouter);
 
 // Manejo de errores
