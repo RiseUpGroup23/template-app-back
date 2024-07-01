@@ -58,13 +58,20 @@ const ConfigSchema = new Schema({
       instagram: defaultStringValue,
     },
   },
-  appointment:{
+  appointment: {
     reservationPrice: {
       type: Number,
     },
-    bannedDays: {
-      type:[]
-    }
+    bannedDays: [{
+      title: {
+        type: String,
+        required: true
+      },
+      date: {
+        type: Date,
+        required: true
+      }
+    }]
   },
   customization: {
     background: {
