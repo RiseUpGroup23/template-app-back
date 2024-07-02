@@ -4,7 +4,6 @@ const { Appointment } = require("../models/appointment/appointmentModel");
 const { Professional } = require("../models/professional/professionalModel");
 const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
 
-// post
 const createOrUpdate = async (req, res, isUpdate = false) => {
   try {
     // Obtener el profesional

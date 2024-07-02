@@ -150,9 +150,22 @@ router.get("/professionalsAndTimeAvailable/:id", async (req, res) => {
       ...generateTimeSlots(secondInitialHour, secondFinalHour, appointmentInterval)
     ];
 
+    const unavailableSchedules = appointmentsConfirmed.flatMap(appt => {
+      const startTime = new Date(appt.startTime);
+      const endTime = new Date(appt.endTime);
+      const slots = [];
+
+      while (startTime < endTime) {
+        slots.push(startTime.toISOString().substring(11, 16));
+        startTime.setMinutes(startTime.getMinutes() + appointmentInterval);
+      }
+
+      return slots;
+    });
+
     const timeAvailableAndtimeUnavailable = {
-      unavailableSchedules: appointmentsConfirmed.map(appt => appt.startTime.toISOString().substring(11, 16)),  // Horarios ocupados convertidos a formato hh:mm
-      allSchedules: allSchedules  // Todos los horarios del día
+      unavailableSchedules, 
+      allSchedules, 
     };
 
     res.status(200).send(timeAvailableAndtimeUnavailable);
