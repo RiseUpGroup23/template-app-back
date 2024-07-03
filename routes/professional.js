@@ -87,14 +87,14 @@ router.put("/professionalsAndServices/:id", async (req, res) => {
 });
 
 //get all&unavailable timeA x dia
-router.get("/professionalsAndTimeAvailable/:id", async (req, res) => {
+router.get("/professionalsAndTimeAvailable/:profId/:day", async (req, res) => {
   try {
-    const { day } = req.body;
+    const { day, profId } = req.params;
     if (!day) {
       return res.status(400).send("Day is required");
     }
 
-    const professional = await Professional.findById(req.params.id);
+    const professional = await Professional.findById(profId);
     if (!professional) {
       return res.status(404).send("Professional not found");
     }
@@ -102,9 +102,9 @@ router.get("/professionalsAndTimeAvailable/:id", async (req, res) => {
     const getDayOfWeek = (dateString) => {
       const date = new Date(dateString);
       const dayOfWeek = date.getUTCDay(); //0 (domingo), 6 (sábado)
-      
+
       const days = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
-      
+
       return days[dayOfWeek];
     };
 
@@ -164,8 +164,8 @@ router.get("/professionalsAndTimeAvailable/:id", async (req, res) => {
     });
 
     const timeAvailableAndtimeUnavailable = {
-      unavailableSchedules, 
-      allSchedules, 
+      unavailableSchedules,
+      allSchedules,
     };
 
     res.status(200).send(timeAvailableAndtimeUnavailable);
