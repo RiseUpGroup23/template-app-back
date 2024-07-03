@@ -93,6 +93,7 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
     const appointmentsOfDay = await Appointment.find({
       professional: professional._id,
       date: { $gte: startOfDay, $lte: endOfDay },
+      disabled: { $ne: true }
     });
 
     // Verificar si ya existe una cita a la misma hora
@@ -223,10 +224,16 @@ router.get("/appointments/month/:year/:month", async (req, res) => {
   }
 });
 
-//delete
-router.delete("/appointments/:id", async (req, res) => {
+//borrado logico
+router.patch("/appointments/delete/:id", async (req, res) => {
   try {
-    const appointment = await Appointment.findByIdAndDelete(req.params.id);
+    const appointment = await Appointment.findByIdAndUpdate(
+      req.params.id,
+      {
+        disabled: true,
+      },
+      { new: true }
+    );
     if (!appointment) {
       return res.status(404).send();
     }
