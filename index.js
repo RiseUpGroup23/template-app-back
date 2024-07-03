@@ -22,6 +22,7 @@ const professionalRouter = require("./routes/professional");
 const typeOfServiceRouter = require("./routes/typeOfService");
 const cloudinaryRouter = require("./routes/cloudinary");
 const wpRouter = require("./routes/wp");
+const mpRouter = require("./routes/mp");
 
 // Rutas
 
@@ -31,6 +32,7 @@ app.use("/", professionalRouter);
 app.use("/", typeOfServiceRouter);
 app.use("/", cloudinaryRouter);
 app.use("/", wpRouter);
+app.use("/", mpRouter);
 
 // Manejo de errores
 app.use((err, req, res, next) => {
