@@ -75,7 +75,7 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
   }
 });
 
-router.post("/webhook", async (req, res) => {
+router.post("/mercadopago/webhook", async (req, res) => {
   let paymentQ = req.query;
   //try {
   console.log("paymentQ", paymentQ);
@@ -89,9 +89,9 @@ router.post("/webhook", async (req, res) => {
       date: result.metadata.date,
       disabled: false,
     });
-    // if (result.status === "approved" && !existingAppointment) {
-    //   axios.post("https://template-peluquerias-back.vercel.app/appointments", transformarObjeto(result.metadata))
-    // }
+    if (result.status === "approved" && !existingAppointment) {
+      axios.post("https://template-peluquerias-back.vercel.app/appointments", transformarObjeto(result.metadata))
+    }
     return res.status(200);
   }
   //} catch (error) {
