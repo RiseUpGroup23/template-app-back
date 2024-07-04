@@ -169,6 +169,24 @@ router.get("/appointments", async (req, res) => {
   }
 });
 
+//get x phoneNumber
+router.get("/appointments/phoneNumber/:phone", async (req, res) => {
+  try {
+    const { phone } = req.params;
+    const appointments = await Appointment.find({
+      "customer.phoneNumber": { $regex: phone, $options: "i" }
+    })
+      .populate("professional")
+      .populate("typeOfService")
+      .sort({ date: -1 });
+
+    res.status(200).send(appointments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error);
+  }
+});
+
 //get x id
 router.get("/appointments/:id", async (req, res) => {
   try {
