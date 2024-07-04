@@ -75,7 +75,7 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
 
 router.post("/webhook", async (req, res) => {
   let paymentQ = req.query;
-  try {
+  //try {
     if (paymentQ.type === "payment") {
       const result = await payment.get({
         id: paymentQ["data.id"],
@@ -94,10 +94,10 @@ router.post("/webhook", async (req, res) => {
       }
       return res.status(200);
     }
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: error.message });
-  }
+  //} catch (error) {
+    //console.error(error);
+    //return res.status(500).json({ error: error.message });
+  //}
 });
 
 module.exports = router;
