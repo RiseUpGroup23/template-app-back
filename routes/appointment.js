@@ -161,7 +161,7 @@ router.get("/appointments", async (req, res) => {
   try {
     const appointments = await Appointment.find()
       .populate("professional")
-      .populate("typeOfService");
+      .populate("typeOfService").sort({ date: -1 });
     res.status(200).send(appointments);
   } catch (error) {
     res.status(500).send(error);
