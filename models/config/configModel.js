@@ -59,8 +59,9 @@ const ConfigSchema = new Schema({
     },
   },
   appointment: {
-    reservationPrice: {
-      type: Number,
+    mercadoPago:{
+      type:Boolean,
+      default:false
     },
     bannedDays: [{
       title: {
