@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { Preference, MercadoPagoConfig, Payment } = require("mercadopago");
 const axios = require("axios");
+const { Appointment } = require("../models/appointment/appointmentModel");
 
 // const TOKEN = process?.env?.MPTOKEN ?? ""
 const TOKEN =
@@ -82,7 +83,7 @@ router.post("/webhook", async (req, res) => {
       });
       console.log("solo metadata",result.metadata);
       console.log("tranform metadata",transformarObjeto(result.metadata));
-      const existingAppointment = await AppointmentModel.findOne({
+      const existingAppointment = await Appointment.findOne({
         date: result.metadata.date,
         disabled: false,
       });
