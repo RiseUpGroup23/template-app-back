@@ -4,7 +4,7 @@ const morgan = require("morgan");
 const cors = require("cors");
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 const mongoDB =
   process.env.DBURL ||
   "mongodb+srv://riseup123:2CHKNUZO1AaiSeLr@baseriseup.yfxwqd3.mongodb.net/app-peluqueria";
@@ -22,6 +22,7 @@ const professionalRouter = require("./routes/professional");
 const typeOfServiceRouter = require("./routes/typeOfService");
 const cloudinaryRouter = require("./routes/cloudinary");
 const wpRouter = require("./routes/wp");
+const mpRouter = require("./routes/mp");
 
 // Rutas
 
@@ -31,6 +32,7 @@ app.use("/", professionalRouter);
 app.use("/", typeOfServiceRouter);
 app.use("/", cloudinaryRouter);
 app.use("/", wpRouter);
+app.use("/", mpRouter);
 
 // Manejo de errores
 app.use((err, req, res, next) => {

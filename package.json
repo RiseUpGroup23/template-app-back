@@ -3,11 +3,12 @@
     "start": "nodemon index.js"
   },
   "dependencies": {
+    "@mercadopago/sdk-react": "^0.0.19",
     "axios": "^1.7.2",
     "cloudinary": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^4.19.2",
-    "mercadopago": "^2.0.9",
+    "mercadopago": "^2.0.10",
     "mongoose": "^8.3.5",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
