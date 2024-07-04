@@ -78,13 +78,12 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
 router.post("/mercadopago/webhook", async (req, res) => {
   let paymentQ = req.query;
   //try {
-  console.log("paymentQ", paymentQ);
-  console.log("solo metadata", result.metadata);
-  console.log("tranform metadata", transformarObjeto(result.metadata));
   if (paymentQ.type === "payment") {
     const result = await payment.get({
       id: paymentQ["data.id"],
     });
+    console.log("solo metadata", result.metadata);
+    console.log("tranform metadata", transformarObjeto(result.metadata));
     const existingAppointment = await Appointment.findOne({
       date: result.metadata.date,
       disabled: false,
