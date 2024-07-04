@@ -80,13 +80,15 @@ router.post("/webhook", async (req, res) => {
       const result = await payment.get({
         id: paymentQ["data.id"],
       });
+      console.log("solo metadata",result.metadata);
+      console.log("tranform metadata",transformarObjeto(result.metadata));
       const existingAppointment = await AppointmentModel.findOne({
         date: result.metadata.date,
         disabled: false,
       });
       if (result.status === "approved" && !existingAppointment) {
         axios.post(
-          "https://template-peluquerias-back.vercel.app//appointments"
+          "https://template-peluquerias-back.vercel.app/appointments"
         ),
           transformarObjeto(result.metadata);
       }
