@@ -77,26 +77,23 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
 
 router.post("/mercadopago/webhook", async (req, res) => {
   let paymentQ = req.query;
-  //try {
-  if (paymentQ.type === "payment") {
-    const result = await payment.get({
-      id: paymentQ["data.id"],
-    });
-    console.log("solo metadata", result.metadata);
-    console.log("tranform metadata", transformarObjeto(result.metadata));
-    const existingAppointment = await Appointment.findOne({
-      date: result.metadata.date,
-      disabled: false,
-    });
-    if (result.status === "approved" && !existingAppointment) {
-      axios.post("https://template-peluquerias-back.vercel.app/appointments", transformarObjeto(result.metadata))
+  try {
+    if (paymentQ.type === "payment") {
+      const result = await payment.get({
+        id: paymentQ["data.id"],
+      });
+      const existingAppointment = await Appointment.findOne({
+        date: result.metadata.date
+      });
+      if (result.status === "approved" && !existingAppointment) {
+        axios.post("https://template-peluquerias-back.vercel.app/appointments", transformarObjeto(result.metadata))
+      }
+      return res.status(200);
     }
-    return res.status(200);
+  } catch (error) {
+    console.error("error webhook", error);
+    return res.status(500).json({ error: error.message });
   }
-  //} catch (error) {
-  //console.error(error);
-  //return res.status(500).json({ error: error.message });
-  //}
 });
 
 module.exports = router;
