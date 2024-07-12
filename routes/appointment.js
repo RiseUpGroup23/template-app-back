@@ -187,18 +187,26 @@ router.get("/appointments/phoneNumber/:phone", async (req, res) => {
   }
 });
 
-//get x id
-router.get("/appointments/:id", async (req, res) => {
+// GET Buscador
+router.get('/appointments/search', async (req, res) => {
+  let query = {};
+
+  const term = `${req.query.term}`;
+  if (term) {
+    query = {
+      $or: [
+        { 'customer.name': { $regex: term, $options: 'i' } },
+        { 'customer.lastname': { $regex: term, $options: 'i' } }
+      ]
+    };
+  }
   try {
-    const appointment = await Appointment.findById(req.params.id)
-      .populate("professional")
-      .populate("typeOfService");
-    if (!appointment) {
-      return res.status(404).send();
-    }
-    res.status(200).send(appointment);
-  } catch (error) {
-    res.status(500).send(error);
+    const appointments = await Appointment.find(query).exec();
+
+    res.json(appointments);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al buscar los turnos' });
   }
 });
 
@@ -252,6 +260,22 @@ router.patch("/appointments/delete/:id", async (req, res) => {
       },
       { new: true }
     );
+    if (!appointment) {
+      return res.status(404).send();
+    }
+    res.status(200).send(appointment);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+
+//get x id
+router.get("/appointments/:id", async (req, res) => {
+  try {
+    const appointment = await Appointment.findById(req.params.id)
+      .populate("professional")
+      .populate("typeOfService");
     if (!appointment) {
       return res.status(404).send();
     }
