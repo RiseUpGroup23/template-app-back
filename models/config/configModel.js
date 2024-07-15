@@ -14,15 +14,21 @@ const ConfigSchema = new Schema({
       },
     ],
   },
-  presentationText: {
-    type: String,
-    default: defaultStringValue,
+  texts: {
+    presentationTitle: {
+      type: String,
+      default: defaultStringValue,
+    },
+    presentationText: {
+      type: String,
+      default: defaultStringValue,
+    },
+    footer: {
+      type: String,
+      default: defaultStringValue,
+    }
   },
   imagePresentation: {
-    type: String,
-    default: defaultStringValue,
-  },
-  presentationTitle: {
     type: String,
     default: defaultStringValue,
   },
@@ -59,9 +65,9 @@ const ConfigSchema = new Schema({
     },
   },
   appointment: {
-    mercadoPago:{
-      type:Boolean,
-      default:false
+    mercadoPago: {
+      type: Boolean,
+      default: false
     },
     bannedDays: [{
       title: {

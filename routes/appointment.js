@@ -190,7 +190,6 @@ router.get("/appointments/phoneNumber/:phone", async (req, res) => {
 // GET Buscador
 router.get('/appointments/search', async (req, res) => {
   let query = {};
-
   const term = `${req.query.term}`;
   if (term) {
     query = {
