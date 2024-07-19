@@ -3,12 +3,13 @@ const Schema = mongoose.Schema;
 const ImgSchema = require("./configSchemas/imgSchema");
 const ContactSchema = require("./configSchemas/contactSchema");
 const { defaultStringValue } = require("../../config");
+const defaultBackground = "https://png.pngtree.com/background/20210715/original/pngtree-background-white-business-lines-picture-image_1326851.jpg"
 
 const ConfigSchema = new Schema({
   texts: {
     presentationTitle: {
       type: String,
-      default: "Título",
+      default: "Título de presentación",
     },
     presentationText: {
       type: String,
@@ -73,8 +74,8 @@ const ConfigSchema = new Schema({
   },
   customization: {
     background: {
-      backgroundImage: { type: String, default: defaultStringValue },
-      backgroundTurno: { type: String, default: defaultStringValue },
+      backgroundImage: { type: String, default: defaultBackground },
+      backgroundTurno: { type: String, default: defaultBackground },
     },
     primary: {
       color: { type: String, default: "#FFFFFF" },
