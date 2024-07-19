@@ -5,32 +5,23 @@ const ContactSchema = require("./configSchemas/contactSchema");
 const { defaultStringValue } = require("../../config");
 
 const ConfigSchema = new Schema({
-  imgsCarrousel: {
-    type: [ImgSchema],
-    default: [
-      {
-        name: defaultStringValue,
-        url: defaultStringValue,
-      },
-    ],
-  },
   texts: {
     presentationTitle: {
       type: String,
-      default: defaultStringValue,
+      default: "Título",
     },
     presentationText: {
       type: String,
-      default: defaultStringValue,
+      default: "Descripción de la empresa",
     },
     footer: {
       type: String,
-      default: defaultStringValue,
+      default: "Descripción de la empresa",
     }
   },
   imagePresentation: {
     type: String,
-    default: defaultStringValue,
+    default: "https://www.estudiostreaming.com.ar/wp-content/uploads/2020/10/tulogo.png",
   },
   banners: {
     imageAppointment: {
@@ -53,15 +44,15 @@ const ConfigSchema = new Schema({
   contact: {
     type: ContactSchema,
     default: {
-      name: defaultStringValue,
-      phone: defaultStringValue,
-      address: defaultStringValue,
-      email: defaultStringValue,
-      city: defaultStringValue,
-      state: defaultStringValue,
-      mapPoint: defaultStringValue,
-      facebook: defaultStringValue,
-      instagram: defaultStringValue,
+      name: "Nombre de la empresa",
+      phone: "0000",
+      address: "Dirección",
+      email: "email@email.com",
+      city: "Ciudad",
+      state: "Provincia",
+      mapPoint: "",
+      facebook: "facebook.com",
+      instagram: "instagram.com",
     },
   },
   appointment: {
@@ -86,18 +77,18 @@ const ConfigSchema = new Schema({
       backgroundTurno: { type: String, default: defaultStringValue },
     },
     primary: {
-      color: { type: String, default: defaultStringValue },
-      text: { type: String, default: defaultStringValue },
+      color: { type: String, default: "#FFFFFF" },
+      text: { type: String, default: "#000000" },
     },
     secondary: {
-      color: { type: String, default: defaultStringValue },
-      text: { type: String, default: defaultStringValue },
+      color: { type: String, default: "#FFFFFF" },
+      text: { type: String, default: "#000000" },
     },
     logo: {
-      primary: { type: String, default: defaultStringValue },
-      secondary: { type: String, default: defaultStringValue },
+      primary: { type: String, default: "https://www.estudiostreaming.com.ar/wp-content/uploads/2020/10/tulogo.png" },
+      secondary: { type: String, default: "https://www.estudiostreaming.com.ar/wp-content/uploads/2020/10/tulogo.png" },
     },
-    shopName: { type: String, default: defaultStringValue },
+    shopName: { type: String, default: "Nombre de la empresa" },
     twoColors: { type: Boolean, default: true }
   },
 });
