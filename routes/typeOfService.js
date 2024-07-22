@@ -5,15 +5,11 @@ const { ConfigModel } = require("../models/config/configModel");
 
 router.post("/typesOfServices", async (req, res) => {
   try {
-    const config = await ConfigModel.findOne();
-    const duration = config.timeModule * req.body.numberOfModules; // mandar cantidad de mdoulos y se guarda en minutos ya, opiniones????
-    const price = config.reservationPrice;
-
     const typeOfService = new TypeOfService({
       name: req.body.name,
-      duration: duration,
-      image: req.body,
-      price: price,
+      duration: req.body.duration,
+      image: req.body.image,
+      price: req.body.price,
     });
 
     await typeOfService.save();
