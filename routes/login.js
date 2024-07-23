@@ -71,7 +71,7 @@ const verifyToken = (req, res, next) => {
     });
 };
 
-app.get('/jwt', verifyToken, (req, res) => {
+router.get('/jwt', verifyToken, (req, res) => {
     res.json({ logged: true });
 });
 
