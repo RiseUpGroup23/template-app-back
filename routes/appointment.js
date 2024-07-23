@@ -200,7 +200,7 @@ router.get('/appointments/search', async (req, res) => {
     };
   }
   try {
-    const appointments = await Appointment.find(query).exec();
+    const appointments = await Appointment.find(query).populate("professional").populate("typeOfService").sort({ date: -1 }).exec();
 
     res.json(appointments);
   } catch (err) {
