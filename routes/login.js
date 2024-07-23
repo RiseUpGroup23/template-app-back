@@ -1,11 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
-const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { User } = require("../models/users/userModel");
 
-const secretKey = crypto.randomBytes(32).toString('hex');
+const secretKey = "5b4a3d9c2a1c8924b9a1019258788c32561908c35745f7f10f59b7e3f3d5a1a0"
 
 router.post("/login", async (req, res) => {
     const { email, password, role } = req.body;
