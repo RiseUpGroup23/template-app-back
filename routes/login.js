@@ -10,18 +10,19 @@ router.post("/login", async (req, res) => {
         const user = await User.findOne({ email });
 
         if (!user) {
-            return res.status(404).json({ logged: false, message: "Usuario no encontrado" });
+            return res.status(200).json({ logged: false, message: "Usuario no encontrado" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
+
         if (!isMatch) {
-            return res.status(401).json({ logged: false, message: "Usuario o contraseña incorrectos" });
+            return res.status(200).json({ logged: false, message: "Usuario o contraseña incorrectos" });
         }
 
         res.status(200).json({ logged: true, message: "Login exitoso" });
     } catch (error) {
         console.error(error.message);
-        res.status(500).json({ logged: false, message: "Hubo un error al intentar acceder" });
+        res.status(500).send();
     }
 });
 
