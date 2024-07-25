@@ -6,6 +6,14 @@ const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
 
 const createOrUpdate = async (req, res, isUpdate = false) => {
   try {
+    //borra lo viejardo
+    const pastWeek = new Date();
+    pastWeek.setDate(pastWeek.getDate() - 7);
+
+    await Appointment.deleteMany({
+      endTime: { $lte: pastWeek },
+    });
+
     // Obtener el profesional
     const professional = await Professional.findById(req.body.professional);
     if (!professional) {
@@ -93,7 +101,7 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
     const appointmentsOfDay = await Appointment.find({
       professional: professional._id,
       date: { $gte: startOfDay, $lte: endOfDay },
-      disabled: { $ne: true }
+      disabled: { $ne: true },
     });
 
     // Verificar si ya existe una cita a la misma hora
@@ -161,7 +169,8 @@ router.get("/appointments", async (req, res) => {
   try {
     const appointments = await Appointment.find()
       .populate("professional")
-      .populate("typeOfService").sort({ date: -1 });
+      .populate("typeOfService")
+      .sort({ date: -1 });
     res.status(200).send(appointments);
   } catch (error) {
     res.status(500).send(error);
@@ -174,7 +183,7 @@ router.get("/appointments/phoneNumber/:phone", async (req, res) => {
   try {
     const { phone } = req.params;
     const appointments = await Appointment.find({
-      "customer.phoneNumber": { $regex: phone, $options: "i" }
+      "customer.phoneNumber": { $regex: phone, $options: "i" },
     })
       .populate("professional")
       .populate("typeOfService")
@@ -188,7 +197,7 @@ router.get("/appointments/phoneNumber/:phone", async (req, res) => {
 });
 
 // GET Buscador
-router.get('/appointments/search', async (req, res) => {
+router.get("/appointments/search", async (req, res) => {
   let query = {};
   const term = req.query.term;
   const typeOfService = req.query.typeOfService;
@@ -196,26 +205,31 @@ router.get('/appointments/search', async (req, res) => {
 
   if (term) {
     query.$or = [
-      { 'customer.name': { $regex: term, $options: 'i' } }, 
-      { 'customer.lastname': { $regex: term, $options: 'i' } } 
+      { "customer.name": { $regex: term, $options: "i" } },
+      { "customer.lastname": { $regex: term, $options: "i" } },
     ];
   }
 
   if (typeOfService) {
-    query.typeOfService = typeOfService; 
+    query.typeOfService = typeOfService;
   }
 
   if (disabled !== undefined) {
-    query.disabled = disabled === 'true' ? true : disabled === 'false' ? false : query.disabled; 
+    query.disabled =
+      disabled === "true"
+        ? true
+        : disabled === "false"
+        ? false
+        : query.disabled;
   }
 
   try {
-    const appointments = await Appointment.find(query).exec(); 
+    const appointments = await Appointment.find(query).exec();
 
-    res.json(appointments); 
+    res.json(appointments);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error al buscar los turnos' }); 
+    res.status(500).json({ error: "Error al buscar los turnos" });
   }
 });
 
@@ -277,7 +291,6 @@ router.patch("/appointments/delete/:id", async (req, res) => {
     res.status(500).send(error);
   }
 });
-
 
 //get x id
 router.get("/appointments/:id", async (req, res) => {
