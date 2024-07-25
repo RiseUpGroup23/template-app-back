@@ -119,6 +119,7 @@ router.get("/professionalsAndTimeAvailable/:profId/:day", async (req, res) => {
     const appointmentsConfirmed = await Appointment.find({
       professional: professional._id,
       date: { $gte: startOfDay, $lte: endOfDay },
+      disabled: false
     });
 
     // Preparar los horarios disponibles y no disponibles
