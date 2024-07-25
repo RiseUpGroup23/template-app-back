@@ -203,6 +203,10 @@ router.get("/appointments/search", async (req, res) => {
   const typeOfService = req.query.typeOfService;
   const disabled = req.query.disabled;
 
+  // default
+  const page = parseInt(req.query.page) || 1; 
+  const rows = parseInt(req.query.rows) || 5; 
+
   if (term) {
     query.$or = [
       { "customer.name": { $regex: term, $options: "i" } },
@@ -224,9 +228,22 @@ router.get("/appointments/search", async (req, res) => {
   }
 
   try {
-    const appointments = await Appointment.find(query).exec();
+    // Buscar los turnos con paginación
+    const appointments = await Appointment.find(query)
+      .skip((page - 1) * rows)  // Saltar los documentos de las páginas anteriores
+      .limit(rows)             // limitar el número de documentos devueltos
+      .exec();
 
-    res.json(appointments);
+    // Contar el total de documentos que coinciden con la consulta
+    const count = await Appointment.countDocuments(query).exec();
+
+    // Enviar la respuesta con los turnos y la información de paginación
+    res.json({
+      appointments,
+      totalPages: Math.ceil(count / rows),  // Número total de páginas
+      currentPage: page,                    // Página actual
+      totalAppointments: count             // Número total de turnos
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Error al buscar los turnos" });
