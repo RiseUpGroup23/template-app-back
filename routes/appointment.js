@@ -190,22 +190,32 @@ router.get("/appointments/phoneNumber/:phone", async (req, res) => {
 // GET Buscador
 router.get('/appointments/search', async (req, res) => {
   let query = {};
-  const term = `${req.query.term}`;
-  if (term) {
-    query = {
-      $or: [
-        { 'customer.name': { $regex: term, $options: 'i' } },
-        { 'customer.lastname': { $regex: term, $options: 'i' } }
-      ]
-    };
-  }
-  try {
-    const appointments = await Appointment.find(query).populate("professional").populate("typeOfService").sort({ date: -1 }).exec();
+  const term = req.query.term;
+  const typeOfService = req.query.typeOfService;
+  const disabled = req.query.disabled;
 
-    res.json(appointments);
+  if (term) {
+    query.$or = [
+      { 'customer.name': { $regex: term, $options: 'i' } }, 
+      { 'customer.lastname': { $regex: term, $options: 'i' } } 
+    ];
+  }
+
+  if (typeOfService) {
+    query.typeOfService = typeOfService; 
+  }
+
+  if (disabled !== undefined) {
+    query.disabled = disabled === 'true' ? true : disabled === 'false' ? false : query.disabled; 
+  }
+
+  try {
+    const appointments = await Appointment.find(query).exec(); 
+
+    res.json(appointments); 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Error al buscar los turnos' });
+    res.status(500).json({ error: 'Error al buscar los turnos' }); 
   }
 });
 
