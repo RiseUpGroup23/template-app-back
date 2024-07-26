@@ -70,7 +70,11 @@ const ConfigSchema = new Schema({
         type: Date,
         required: true
       }
-    }]
+    }],
+    nextMonths: {
+      type: Number,
+      default: 2
+    }
   },
   customization: {
     background: {
