@@ -200,6 +200,7 @@ router.get("/appointments/phoneNumber/:phone", async (req, res) => {
 router.get("/appointments/search", async (req, res) => {
   let query = {};
   const term = req.query.term;
+  const professional = req.query.professional;
   const typeOfService = req.query.typeOfService;
   const disabled = req.query.disabled;
 
@@ -216,6 +217,10 @@ router.get("/appointments/search", async (req, res) => {
 
   if (typeOfService) {
     query.typeOfService = typeOfService;
+  }
+
+  if (professional) {
+    query.professional = professional;
   }
 
   if (disabled !== undefined) {
