@@ -215,15 +215,15 @@ router.get("/appointments/search", async (req, res) => {
     ];
   }
 
-  if (typeOfService) {
+  if (typeOfService !== "all" && typeOfService) {
     query.typeOfService = typeOfService;
   }
 
-  if (professional) {
+  if (professional !== "all" && professional) {
     query.professional = professional;
   }
 
-  if (disabled !== undefined) {
+  if (disabled !== "all" && disabled !== undefined) {
     query.disabled =
       disabled === "true"
         ? true
@@ -235,8 +235,8 @@ router.get("/appointments/search", async (req, res) => {
   try {
     // Buscar los turnos con paginación
     const appointments = await Appointment.find(query)
-      .populate("professional")
-      .populate("typeOfService")
+      // .populate("professional")
+      // .populate("typeOfService")
       .skip((page - 1) * rows) // Saltar los documentos de las páginas anteriores
       .limit(rows) // limitar el número de documentos devueltos
       .exec();
