@@ -7,7 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const mongoDB =
   process.env.DBURL ||
-  "mongodb+srv://riseup123:2CHKNUZO1AaiSeLr@baseriseup.yfxwqd3.mongodb.net/app-peluqueria";
+  "mongodb+srv://spatemplate28:3yHl8y63kOduKv0O@cluster0.yzp1qhd.mongodb.net/";
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

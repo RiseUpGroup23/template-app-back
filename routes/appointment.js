@@ -199,10 +199,9 @@ router.get("/appointments/phoneNumber/:phone", async (req, res) => {
 
 // GET Buscador
 router.get("/appointments/search", async (req, res) => {
-  const now = moment().utc(true).toDate();
-  console.log(now);
+  const thirtyMinutesAgo = moment().utc(true).subtract(15, 'minutes').toDate();
   let query = {
-    date: { $gte: now }
+    date: { $gte: thirtyMinutesAgo }
   };
   const term = req.query.term;
   const professional = req.query.professional;
