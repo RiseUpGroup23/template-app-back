@@ -228,15 +228,18 @@ router.get("/appointments/search", async (req, res) => {
       disabled === "true"
         ? true
         : disabled === "false"
-        ? false
-        : query.disabled;
+          ? false
+          : query.disabled;
   }
 
   try {
     // Buscar los turnos con paginación
     const appointments = await Appointment.find(query)
-      // .populate("professional")
-      // .populate("typeOfService")
+      .populate({
+        path: 'professional',
+        select: '_id name lastname typesOfServices'
+      })
+      .populate("typeOfService")
       .skip((page - 1) * rows) // Saltar los documentos de las páginas anteriores
       .limit(rows) // limitar el número de documentos devueltos
       .exec();
