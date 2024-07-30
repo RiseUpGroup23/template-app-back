@@ -240,6 +240,7 @@ router.get("/appointments/search", async (req, res) => {
         select: '_id name lastname typesOfServices'
       })
       .populate("typeOfService")
+      .sort({ date: -1 })
       .skip((page - 1) * rows) // Saltar los documentos de las páginas anteriores
       .limit(rows) // limitar el número de documentos devueltos
       .exec();
