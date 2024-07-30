@@ -3,7 +3,7 @@ const router = express.Router();
 const { Appointment } = require("../models/appointment/appointmentModel");
 const { Professional } = require("../models/professional/professionalModel");
 const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
-const moment = require('moment');
+const moment = require('moment-timezone');
 
 const createOrUpdate = async (req, res, isUpdate = false) => {
   try {
@@ -199,9 +199,10 @@ router.get("/appointments/phoneNumber/:phone", async (req, res) => {
 
 // GET Buscador
 router.get("/appointments/search", async (req, res) => {
-  const thirtyMinutesAgo = moment().utc(true).subtract(15, 'minutes').toDate();
+  const fecha = moment().utc(true).tz('America/Argentina/Buenos_Aires').subtract(30, "minutes").toDate()
+
   let query = {
-    date: { $gte: thirtyMinutesAgo }
+    date: { $gte: fecha }
   };
   const term = req.query.term;
   const professional = req.query.professional;
@@ -257,7 +258,8 @@ router.get("/appointments/search", async (req, res) => {
       appointments,
       totalPages: Math.ceil(count / rows), // Número total de páginas
       currentPage: page, // Página actual
-      totalAppointments: count, // Número total de turnos
+      totalAppointments: count, // Número total de turnos,
+      moment: fecha.toUTCString()
     });
   } catch (err) {
     console.error(err);
