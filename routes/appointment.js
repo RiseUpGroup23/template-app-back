@@ -257,8 +257,7 @@ router.get("/appointments/search", async (req, res) => {
       appointments,
       totalPages: Math.ceil(count / rows), // Número total de páginas
       currentPage: page, // Página actual
-      totalAppointments: count, // Número total de turnos,
-      moment: fecha.toUTCString()
+      totalAppointments: count, // Número total de turnos
     });
   } catch (err) {
     console.error(err);
