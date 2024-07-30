@@ -199,7 +199,7 @@ router.get("/appointments/phoneNumber/:phone", async (req, res) => {
 
 // GET Buscador
 router.get("/appointments/search", async (req, res) => {
-  const now = moment().toDate();
+  const now = moment().utc(true).toDate();
   console.log(now);
   let query = {
     date: { $gte: now }
