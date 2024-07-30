@@ -3,6 +3,7 @@ const router = express.Router();
 const { Appointment } = require("../models/appointment/appointmentModel");
 const { Professional } = require("../models/professional/professionalModel");
 const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
+const moment = require('moment');
 
 const createOrUpdate = async (req, res, isUpdate = false) => {
   try {
@@ -198,7 +199,11 @@ router.get("/appointments/phoneNumber/:phone", async (req, res) => {
 
 // GET Buscador
 router.get("/appointments/search", async (req, res) => {
-  let query = {};
+  const now = moment().toDate();
+  console.log(now);
+  let query = {
+    date: { $gte: now }
+  };
   const term = req.query.term;
   const professional = req.query.professional;
   const typeOfService = req.query.typeOfService;
