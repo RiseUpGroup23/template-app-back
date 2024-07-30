@@ -3,7 +3,6 @@ const router = express.Router();
 const { Appointment } = require("../models/appointment/appointmentModel");
 const { Professional } = require("../models/professional/professionalModel");
 const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
-const moment = require('moment-timezone');
 
 const createOrUpdate = async (req, res, isUpdate = false) => {
   try {
@@ -199,7 +198,7 @@ router.get("/appointments/phoneNumber/:phone", async (req, res) => {
 
 // GET Buscador
 router.get("/appointments/search", async (req, res) => {
-  const fecha = moment().tz('America/Argentina/Buenos_Aires').subtract(30, "minutes").toDate()
+  const fecha = new Date(new Date().getTime() + (-3 * 60 * 60 * 1000) - (30 * 60 * 1000));
 
   let query = {
     date: { $gte: fecha }
