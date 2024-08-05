@@ -75,17 +75,6 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
       });
     }
 
-    // Verificar que la hora del turno esté en el intervalo correcto
-    const interval = professional.appointmentInterval;
-    const isWithinInterval =
-      (appointmentTime - availabilityStart) % interval === 0 ||
-      (appointmentTime - availabilitySecondStart) % interval === 0;
-    if (!isWithinInterval) {
-      return res.status(400).send({
-        error: "Appointment time is out of the interval range",
-      });
-    }
-
     // Calcular el startTime y endTime basado en la duración del servicio
     const startTime = new Date(dateString);
     const endTime = new Date(

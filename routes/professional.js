@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { Professional } = require("../models/professional/professionalModel");
+const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
 const { Appointment } = require("../models/appointment/appointmentModel");
 
 router.post("/professionals", async (req, res) => {
@@ -87,9 +88,9 @@ router.put("/professionalsAndServices/:id", async (req, res) => {
 });
 
 //get all&unavailable timeA x dia
-router.get("/professionalsAndTimeAvailable/:profId/:day", async (req, res) => {
+router.get("/professionalsAndTimeAvailable/:profId/:day/:serviceId", async (req, res) => {
   try {
-    const { day, profId } = req.params;
+    const { day, profId, serviceId } = req.params;
     if (!day) {
       return res.status(400).send("Day is required");
     }
@@ -124,14 +125,13 @@ router.get("/professionalsAndTimeAvailable/:profId/:day", async (req, res) => {
 
     // Preparar los horarios disponibles y no disponibles
     const timeAvailabilitiesOfDay = professional.timeAvailabilities[dayOfWeek];
-    console.log(dayOfWeek);
 
     if (!timeAvailabilitiesOfDay) {
       return res.status(400).send("No availability");
     }
 
     const { initialHour, finalHour, secondInitialHour, secondFinalHour } = timeAvailabilitiesOfDay;
-    const appointmentInterval = professional.appointmentInterval;
+    const { duration: serviceDuration } = await TypeOfService.findById(serviceId)
 
     const generateTimeSlots = (start, end, interval) => {
       const startTime = new Date(`1970-01-01T${start}:00Z`);
@@ -147,18 +147,41 @@ router.get("/professionalsAndTimeAvailable/:profId/:day", async (req, res) => {
     };
 
     const allSchedules = [
-      ...generateTimeSlots(initialHour, finalHour, appointmentInterval),
-      ...generateTimeSlots(secondInitialHour, secondFinalHour, appointmentInterval)
+      ...generateTimeSlots(initialHour, finalHour, serviceDuration),
+      ...generateTimeSlots(secondInitialHour, secondFinalHour, serviceDuration)
     ];
+
 
     const unavailableSchedules = appointmentsConfirmed.flatMap(appt => {
       const startTime = new Date(appt.startTime);
       const endTime = new Date(appt.endTime);
-      const slots = [];
+      let nuevoStart = new Date(appt.startTime);
+      let nuevoEnd = new Date(appt.endTime);
 
-      while (startTime < endTime) {
-        slots.push(startTime.toISOString().substring(11, 16));
-        startTime.setMinutes(startTime.getMinutes() + appointmentInterval);
+      for (let i = 0; i < allSchedules.length; i++) {
+        const time = allSchedules[i];
+        const hours = time.split(":")[0]
+        const minutes = time.split(":")[1]
+
+        const stringStart = new Date(startTime).toJSON().split("T")
+        const formattedStart = stringStart[0] + `T${hours}:${minutes}` + stringStart[1].slice(5)
+        const stringEnd = new Date(endTime).toJSON().split("T")
+        const formattedEnd = stringEnd[0] + `T${hours}:${minutes}` + stringEnd[1].slice(5)
+
+        if (new Date(formattedStart) <= startTime) {
+          nuevoStart = new Date(formattedStart)
+        }
+
+        if (new Date(formattedEnd) >= endTime) {
+          nuevoEnd = new Date(formattedEnd)
+          break;
+        }
+      }
+      const slots = [];
+      
+      while (nuevoStart < nuevoEnd) {
+        slots.push(nuevoStart.toISOString().substring(11, 16));
+        nuevoStart.setMinutes(nuevoStart.getMinutes() + serviceDuration);
       }
 
       return slots;
