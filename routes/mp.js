@@ -42,7 +42,8 @@ function transformarObjeto(objeto) {
 // POST
 router.post("/mercadopago/crear-preferencia", async (req, res) => {
   try {
-    console.log("crear pref", req.body.appointment);
+    const frontOrigin = req.body.origin.endsWith("/") ? req.body.origin.slice(0, -1) : req.body.origin
+    const backUrl = new URL(`http://${process.env.HOST ?? 'localhost'}${req.url}`);
     const body = {
       items: [
         {
@@ -53,11 +54,11 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
         },
       ],
       back_urls: {
-        success: "https://www.anashe.org/", // variables de entorno
-        failure: "https://www.noanashe.org/", // variables de entorno
+        success: `${frontOrigin}/reserva-exitosa`,
+        failure: `${frontOrigin}/reserva-error`,
       },
       auto_return: "approved",
-      notification_url: `https://template-peluquerias-back.vercel.app/mercadopago/webhook`, // variables de entorno
+      notification_url: `${backUrl.origin}/mercadopago/webhook`, // variables de entorno
       metadata: req.body.appointment,
     };
 
@@ -77,6 +78,7 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
 
 router.post("/mercadopago/webhook", async (req, res) => {
   let paymentQ = req.query;
+  const backUrl = new URL(`http://${process.env.HOST ?? 'localhost'}${req.url}`);
   try {
     if (paymentQ.type === "payment") {
       const result = await payment.get({
@@ -86,7 +88,7 @@ router.post("/mercadopago/webhook", async (req, res) => {
         date: result.metadata.date
       });
       if (result.status === "approved" && !existingAppointment) {
-        axios.post("https://template-peluquerias-back.vercel.app/appointments", transformarObjeto(result.metadata))
+        axios.post(`${backUrl}/appointments`, transformarObjeto(result.metadata))
       }
       return res.status(200);
     }
