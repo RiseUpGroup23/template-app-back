@@ -43,7 +43,7 @@ function transformarObjeto(objeto) {
 router.post("/mercadopago/crear-preferencia", async (req, res) => {
   try {
     const frontOrigin = req.body.origin.endsWith("/") ? req.body.origin.slice(0, -1) : req.body.origin
-    const backUrl = new URL(`http://${process.env.HOST ?? 'localhost'}${req.url}`);
+    const backUrl = `http://${process.env.HOST ?? 'localhost'}`;
     const body = {
       items: [
         {
@@ -78,7 +78,7 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
 
 router.post("/mercadopago/webhook", async (req, res) => {
   let paymentQ = req.query;
-  const backUrl = new URL(`http://${process.env.HOST ?? 'localhost'}${req.url}`);
+  const backUrl = `http://${process.env.HOST ?? 'localhost'}`;
   try {
     if (paymentQ.type === "payment") {
       const result = await payment.get({
