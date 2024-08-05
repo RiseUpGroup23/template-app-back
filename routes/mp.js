@@ -47,6 +47,9 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
     const host = process.env.HOST || 'localhost';
     const port = process.env.PORT ? `:${process.env.PORT}` : '4000';
     const backUrl = `${protocol}://${host}${port}`;
+    console.log("back", backUrl);
+    console.log("front", frontOrigin);
+
     const body = {
       items: [
         {
