@@ -135,10 +135,11 @@ router.get("/professionalsAndTimeAvailable/:profId/:day/:serviceId", async (req,
 
     const generateTimeSlots = (start, end, interval) => {
       const startTime = new Date(`1970-01-01T${start}:00Z`);
+      const copyStartTime = new Date(`1970-01-01T${start}:00Z`);
       const endTime = new Date(`1970-01-01T${end}:00Z`);
       const slots = [];
 
-      while (startTime < endTime) {
+      while (startTime < endTime && copyStartTime.setMinutes(startTime.getMinutes() + interval) < endTime) {
         slots.push(startTime.toISOString().substring(11, 16));
         startTime.setMinutes(startTime.getMinutes() + interval);
       }
@@ -178,7 +179,7 @@ router.get("/professionalsAndTimeAvailable/:profId/:day/:serviceId", async (req,
         }
       }
       const slots = [];
-      
+
       while (nuevoStart < nuevoEnd) {
         slots.push(nuevoStart.toISOString().substring(11, 16));
         nuevoStart.setMinutes(nuevoStart.getMinutes() + serviceDuration);
