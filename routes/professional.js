@@ -5,7 +5,7 @@ const { Professional } = require("../models/professional/professionalModel");
 const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
 const { Appointment } = require("../models/appointment/appointmentModel");
 const { ConfigModel } = require("../models/config/configModel");
-const { ObjectId } = require('mongodb');
+const { ObjectId } = require("mongodb");
 
 router.post("/professionals", async (req, res) => {
   try {
@@ -43,128 +43,163 @@ router.get("/professionals/:id", async (req, res) => {
 
 // Actualizar
 const verifyTimeAvailability = async (req, res, next) => {
-  const professional = await Professional.findById(req.params.id);
-  const timeAvailabilities = professional.timeAvailabilities;
-  const newTimeAvailabities = req.body.timeAvailabilities;
-  const config = await ConfigModel.findOne({}); 
-  const changeAppointment = req.body.changeAppointment;
-
-const dayOfWeek = Object.keys(timeAvailabilities);
-const difDays = [];
-
-function timeToMinutes(timeStr) {
-  const [hours, minutes] = timeStr.split(':').map(Number);
-  return hours * 60 + minutes;
-}
-
-for (let index = 0; index < dayOfWeek.length; index++) {
-  const dayTimeA = timeAvailabilities[dayOfWeek[index]];
-  const dayTimeNewA = newTimeAvailabities[dayOfWeek[index]];
-
-  // Convertir las horas a minutos
-  const initialHourA = timeToMinutes(dayTimeA.initialHour);
-  const finalHourA = timeToMinutes(dayTimeA.finalHour);
-  const initialHourNewA = timeToMinutes(dayTimeNewA.initialHour);
-  const finalHourNewA = timeToMinutes(dayTimeNewA.finalHour);
-  
-  const secondInitialHourA = timeToMinutes(dayTimeA.secondInitialHour);
-  const secondFinalHourA = timeToMinutes(dayTimeA.secondFinalHour);
-  const secondInitialHourNewA = timeToMinutes(dayTimeNewA.secondInitialHour);
-  const secondFinalHourNewA = timeToMinutes(dayTimeNewA.secondFinalHour);
-
-  if (
-    initialHourNewA > initialHourA || // Nueva hora inicial mayor que la actual
-    finalHourNewA < finalHourA || // Nueva hora final menor que la actual
-    secondInitialHourNewA > secondInitialHourA || // Nueva segunda hora inicial mayor que la actual
-    secondFinalHourNewA < secondFinalHourA // Nueva segunda hora final menor que la actual
-  ) {
-    const indexote = index === 6 ? 0 : index + 1;
-    difDays.push(indexote);
-  }
-}
-
-  if (difDays.length === 0 || changeAppointment === "skip") {
-    return next();
-  }
-
-  // Función para obtener todos los días específicos en un rango de fechas
-  const getSpecificDaysInRange = (startDate, endDate, daysOfWeek) => {
-    const specificDays = [];
-    let current = moment(startDate);
-
-    while (current <= endDate) {
-      if (daysOfWeek.includes(current.isoWeekday())) {
-        // Check if the current day is one of the specific days
-        specificDays.push(current.clone());
-      }
-      current.add(1, "days");
+  try {
+    const professional = await Professional.findById(req.params.id);
+    if (!professional) {
+      return res.status(404).send("Professional not found");
     }
 
-    return specificDays;
-  };
+    const timeAvailabilities = professional.timeAvailabilities;
+    const newTimeAvailabities = req.body.timeAvailabilities;
+    const config = await ConfigModel.findOne({});
+    const changeAppointment = req.body.changeAppointment;
 
-  // Función para buscar turnos en días específicos dentro de 12 meses
-  const nextMonths = config.appointment.nextMonths;
+    const dayOfWeek = Object.keys(timeAvailabilities);
+    const difDays = [];
 
-  const findAppointmentsOnSpecificDays = async (daysOfWeek) => {
-    try {
-      const today = moment();
-      const startDate = today.startOf("day").toDate();
-      const endDate = today.add(nextMonths, "months").endOf("day").toDate(); // poner la cantidad de meses del config
+    function timeToMinutes(timeStr) {
+      const [hours, minutes] = timeStr.split(":").map(Number);
+      return hours * 60 + minutes;
+    }
 
-      const specificDays = getSpecificDaysInRange(
-        startDate,
-        endDate,
-        daysOfWeek
+    for (let index = 0; index < dayOfWeek.length; index++) {
+      const dayTimeA = timeAvailabilities[dayOfWeek[index]];
+      const dayTimeNewA = newTimeAvailabities[dayOfWeek[index]];
+
+      // Convertir las horas a minutos
+      const initialHourA = timeToMinutes(dayTimeA.initialHour);
+      const finalHourA = timeToMinutes(dayTimeA.finalHour);
+      const initialHourNewA = timeToMinutes(dayTimeNewA.initialHour);
+      const finalHourNewA = timeToMinutes(dayTimeNewA.finalHour);
+
+      const secondInitialHourA = timeToMinutes(dayTimeA.secondInitialHour);
+      const secondFinalHourA = timeToMinutes(dayTimeA.secondFinalHour);
+      const secondInitialHourNewA = timeToMinutes(
+        dayTimeNewA.secondInitialHour
       );
-      const appointments = [];
+      const secondFinalHourNewA = timeToMinutes(dayTimeNewA.secondFinalHour);
 
-      for (const day of specificDays) {
-        const startOfDay = day.startOf("day").toDate();
-        const endOfDay = day.endOf("day").toDate();
-
-        const result = await Appointment.find({
-          professional: professional._id,
-          date: {
-            $gte: startOfDay,
-            $lte: endOfDay,
-          },
-        });
-
-        appointments.push(...result);
+      if (
+        initialHourNewA > initialHourA || // Nueva hora inicial mayor que la actual
+        finalHourNewA < finalHourA || // Nueva hora final menor que la actual
+        secondInitialHourNewA > secondInitialHourA || // Nueva segunda hora inicial mayor que la actual
+        secondFinalHourNewA < secondFinalHourA // Nueva segunda hora final menor que la actual
+      ) {
+        const indexote = index === 6 ? 0 : index + 1;
+        difDays.push(indexote);
       }
-
-      return appointments;
-    } catch (error) {
-      console.error("Error finding appointments:", error);
-      throw error;
     }
-  };
 
-  findAppointmentsOnSpecificDays(difDays)
-    .then(async (appointments) => {
-      if (changeAppointment === "cancel") {
-        const objectIds = appointments.map(apo => new ObjectId(apo._id));
-        const filter = { _id: { $in: objectIds } };
-        const updateDoc = {
-            $set: {
-                disabled: true
-            }
-        };
+    if (difDays.length === 0 || changeAppointment === "skip") {
+      return next();
+    }
 
-        await Appointment.updateMany(filter, updateDoc);
-        return next()
+    // Función para obtener todos los días específicos en un rango de fechas
+    const getSpecificDaysInRange = (startDate, endDate, daysOfWeek) => {
+      const specificDays = [];
+      let current = moment(startDate);
+
+      while (current <= endDate) {
+        if (daysOfWeek.includes(current.isoWeekday())) {
+          specificDays.push(current.clone());
+        }
+        current.add(1, "days");
       }
-      if (appointments.length === 0) {
-        return next();
-      } else {
-        res.status(200).send({conflicts:appointments}
+
+      return specificDays;
+    };
+
+    // Función para buscar turnos en días específicos dentro de 12 meses
+    const nextMonths = config.appointment.nextMonths;
+
+    const findAppointmentsOnSpecificDays = async (daysOfWeek) => {
+      try {
+        const today = moment();
+        const startDate = today.startOf("day").toDate();
+        const endDate = today.add(nextMonths, "months").endOf("day").toDate();
+
+        const specificDays = getSpecificDaysInRange(
+          startDate,
+          endDate,
+          daysOfWeek
         );
+        const appointments = [];
+
+        for (const day of specificDays) {
+          const startOfDay = day.startOf("day").toDate();
+          const endOfDay = day.endOf("day").toDate();
+
+          const result = await Appointment.find({
+            professional: professional._id,
+            date: {
+              $gte: startOfDay,
+              $lte: endOfDay,
+            },
+            disabled: false
+          });
+
+          appointments.push(...result);
+        }
+
+        return appointments;
+      } catch (error) {
+        console.error("Error finding appointments:", error);
+        throw error;
       }
-    })
-    .catch((error) => {
-      console.error("Error:", error);
+    };
+
+    const appointments = await findAppointmentsOnSpecificDays(difDays);
+
+    // Filtrar las citas que quedan fuera del nuevo rango
+    const filteredAppointments = appointments.filter((appointment) => {
+      const appointmentDay = moment(appointment.date);
+      const dayOfWeek = appointmentDay.isoWeekday();
+
+      const newAvailability = newTimeAvailabities[dayOfWeek];
+      const newStartTime = timeToMinutes(newAvailability.initialHour);
+      const newEndTime = timeToMinutes(newAvailability.finalHour);
+      const newSecondStartTime = timeToMinutes(
+        newAvailability.secondInitialHour
+      );
+      const newSecondEndTime = timeToMinutes(newAvailability.secondFinalHour);
+
+      const appointmentStartTime =
+        appointmentDay.hour() * 60 + appointmentDay.minute();
+      const appointmentEndTime =
+        appointmentStartTime + (appointment.duration || 0); // Considera duración si aplica
+
+      // Verifica si la cita está fuera del nuevo rango
+      const isOutsideNewRange =
+        (appointmentStartTime < newStartTime &&
+          appointmentEndTime <= newStartTime) ||
+        (appointmentStartTime >= newEndTime &&
+          appointmentEndTime > newEndTime) ||
+        (appointmentStartTime < newSecondStartTime &&
+          appointmentEndTime <= newSecondStartTime) ||
+        (appointmentStartTime >= newSecondEndTime &&
+          appointmentEndTime > newSecondEndTime);
+
+      return isOutsideNewRange;
     });
+
+    if (changeAppointment === "cancel") {
+      const objectIds = filteredAppointments.map((apo) => apo._id);
+      await Appointment.updateMany(
+        { _id: { $in: objectIds } },
+        { $set: { disabled: true } }
+      );
+      return next();
+    }
+
+    if (filteredAppointments.length === 0) {
+      return next();
+    } else {
+      return res.status(200).send({ conflicts: filteredAppointments });
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).send("Internal Server Error");
+  }
 };
 
 router.put("/professionals/:id", verifyTimeAvailability, async (req, res) => {
