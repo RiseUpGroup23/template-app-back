@@ -44,6 +44,8 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
   try {
     const frontOrigin = req.body.origin.endsWith("/") ? req.body.origin.slice(0, -1) : req.body.origin
     const backUrl = req.protocol + '://' + req.get('host');
+    console.log("soy back url", backUrl);
+
     const body = {
       items: [
         {
