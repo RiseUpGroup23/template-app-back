@@ -44,7 +44,7 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
   try {
     const frontOrigin = req.body.origin.endsWith("/") ? req.body.origin.slice(0, -1) : req.body.origin
     const backUrl = req.protocol + '://' + req.get('host');
-    console.log("soy back url", backUrl);
+    console.log("noti url", `${backUrl}/mercadopago/webhook`);
 
     const body = {
       items: [
@@ -60,7 +60,7 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
         failure: `${frontOrigin}/reserva-error`,
       },
       auto_return: "approved",
-      notification_url: `${backUrl}/mercadopago/webhook`, // variables de entorno
+      notification_url: `${backUrl}/mercadopago/webhook`,
       metadata: req.body.appointment,
     };
 
@@ -86,10 +86,7 @@ router.post("/mercadopago/webhook", async (req, res) => {
       const result = await payment.get({
         id: paymentQ["data.id"],
       });
-      const existingAppointment = await Appointment.findOne({
-        date: result.metadata.date
-      });
-      if (result.status === "approved" && !existingAppointment) {
+      if (result.status === "approved") {
         axios.post(`${backUrl}/appointments`, transformarObjeto(result.metadata))
       }
       return res.status(200);
