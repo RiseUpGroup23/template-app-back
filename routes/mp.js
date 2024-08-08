@@ -43,7 +43,7 @@ function transformarObjeto(objeto) {
 router.post("/mercadopago/crear-preferencia", async (req, res) => {
   try {
     const frontOrigin = req.body.origin.endsWith("/") ? req.body.origin.slice(0, -1) : req.body.origin
-    const backUrl = req.protocol + '://' + req.get('host');
+    const backUrl = (req.protocol.endsWith("s") ? req.protocol : (req.protocol + "s")) + '://' + req.get('host');
     console.log("noti url", `${backUrl}/mercadopago/webhook`);
 
     const body = {
@@ -56,7 +56,7 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
         },
       ],
       back_urls: {
-        success: `${frontOrigin}/reserva-exitosa`,
+        success: `${frontOrigin}/reserva-confirmada`,
         failure: `${frontOrigin}/reserva-error`,
       },
       auto_return: "approved",
