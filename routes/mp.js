@@ -43,13 +43,7 @@ function transformarObjeto(objeto) {
 router.post("/mercadopago/crear-preferencia", async (req, res) => {
   try {
     const frontOrigin = req.body.origin.endsWith("/") ? req.body.origin.slice(0, -1) : req.body.origin
-    const protocol = process.env.USE_HTTPS === 'true' ? 'https' : 'http';
-    const host = process.env.HOST || 'localhost';
-    const port = process.env.PORT ? `:${process.env.PORT}` : '4000';
-    const backUrl = `${protocol}://${host}${port}`;
-    console.log("back", backUrl);
-    console.log("front", frontOrigin);
-
+    const backUrl = req.protocol + '://' + req.get('host');
     const body = {
       items: [
         {
@@ -64,7 +58,7 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
         failure: `${frontOrigin}/reserva-error`,
       },
       auto_return: "approved",
-      notification_url: `${backUrl.origin}/mercadopago/webhook`, // variables de entorno
+      notification_url: `${backUrl}/mercadopago/webhook`, // variables de entorno
       metadata: req.body.appointment,
     };
 
@@ -84,10 +78,7 @@ router.post("/mercadopago/crear-preferencia", async (req, res) => {
 
 router.post("/mercadopago/webhook", async (req, res) => {
   let paymentQ = req.query;
-  const protocol = process.env.USE_HTTPS === 'true' ? 'https' : 'http';
-  const host = process.env.HOST || 'localhost';
-  const port = process.env.PORT ? `:${process.env.PORT}` : '4000';
-  const backUrl = `${protocol}://${host}${port}`;
+  const backUrl = req.protocol + '://' + req.get('host');
   try {
     if (paymentQ.type === "payment") {
       const result = await payment.get({
