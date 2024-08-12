@@ -51,6 +51,7 @@ const verifyTimeAvailability = async (req, res, next) => {
 
     const timeAvailabilities = professional.timeAvailabilities;
     const newTimeAvailabities = req.body.timeAvailabilities;
+
     const config = await ConfigModel.findOne({});
     const changeAppointment = req.body.changeAppointment;
 
@@ -153,9 +154,9 @@ const verifyTimeAvailability = async (req, res, next) => {
     // Filtrar las citas que quedan fuera del nuevo rango
     const filteredAppointments = appointments.filter((appointment) => {
       const appointmentDay = moment(appointment.date);
-      const dayOfWeek = appointmentDay.isoWeekday();
+      const dayIndex = appointmentDay.isoWeekday();
 
-      const newAvailability = newTimeAvailabities[dayOfWeek];
+      const newAvailability = newTimeAvailabities[dayOfWeek[dayIndex]];
       const newStartTime = timeToMinutes(newAvailability.initialHour);
       const newEndTime = timeToMinutes(newAvailability.finalHour);
       const newSecondStartTime = timeToMinutes(
