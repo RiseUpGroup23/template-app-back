@@ -137,7 +137,11 @@ const verifyTimeAvailability = async (req, res, next) => {
               $lte: endOfDay,
             },
             disabled: false
-          });
+          }, {
+            date: 1,
+            customer: 1,
+            typeOfService: 1
+          }).populate("typeOfService");
 
           appointments.push(...result);
         }
@@ -195,11 +199,11 @@ const verifyTimeAvailability = async (req, res, next) => {
     if (filteredAppointments.length === 0) {
       return next();
     } else {
-      return res.status(500).send({ conflicts: filteredAppointments });
+      return res.status(400).send({ conflicts: filteredAppointments });
     }
   } catch (error) {
     console.error("Error:", error);
-    res.status(500).send({error});
+    res.status(500).send({ error });
   }
 };
 
