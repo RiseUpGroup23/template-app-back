@@ -195,7 +195,7 @@ const verifyTimeAvailability = async (req, res, next) => {
     if (filteredAppointments.length === 0) {
       return next();
     } else {
-      return res.status(200).send({ conflicts: filteredAppointments });
+      return res.status(500).send({ conflicts: filteredAppointments });
     }
   } catch (error) {
     console.error("Error:", error);
