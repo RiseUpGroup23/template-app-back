@@ -10,11 +10,11 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
     const now = new Date();
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0); // Último día del mes pasado
-    
+
     await Appointment.deleteMany({
       endTime: { $gte: lastMonth, $lte: endOfLastMonth },
     });
-    
+
 
     // Obtener el profesional
     const professional = await Professional.findById(req.body.professional);
@@ -203,7 +203,7 @@ router.get("/appointments/search", async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const rows = parseInt(req.query.rows) || 5;
 
-  if (term) {
+  if (term && term !== "") {
     query.$or = [
       { "customer.name": { $regex: term, $options: "i" } },
       { "customer.lastname": { $regex: term, $options: "i" } },

@@ -119,7 +119,7 @@ const verifyTimeAvailability = async (req, res, next) => {
     const findAppointmentsOnSpecificDays = async (daysOfWeek) => {
       try {
         const today = moment();
-        const startDate = today.startOf("day").toDate();
+        const startDate = today.add(1, "days").startOf("day").toDate();
         const endDate = today.add(nextMonths, "months").endOf("day").toDate();
 
         const specificDays = getSpecificDaysInRange(
