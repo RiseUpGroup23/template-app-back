@@ -326,7 +326,7 @@ router.get(
 
         while (
           startTime < endTime &&
-          copyStartTime.setMinutes(startTime.getMinutes() + interval) < endTime
+          copyStartTime.setMinutes(startTime.getMinutes() + interval) <= endTime
         ) {
           slots.push(startTime.toISOString().substring(11, 16));
           startTime.setMinutes(startTime.getMinutes() + interval);
