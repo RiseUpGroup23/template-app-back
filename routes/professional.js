@@ -129,21 +129,56 @@ const verifyTimeAvailability = async (req, res, next) => {
         );
         const appointments = [];
 
+        const convertToDate = (timeString, date) => moment(date).set({
+          hour: parseInt(timeString.split(':')[0]) - 3,
+          minute: parseInt(timeString.split(':')[1]),
+          second: 0,
+          millisecond: 0
+        }).toDate();
+
         for (const day of specificDays) {
           const startOfDay = day.startOf("day").toDate();
           const endOfDay = day.endOf("day").toDate();
 
+          const availability = newTimeAvailabities[day.format('dddd').toLowerCase()]
+          const firstRangeStart = convertToDate(availability.initialHour, startOfDay);
+          const firstRangeEnd = convertToDate(availability.finalHour, startOfDay);
+          const secondRangeStart = convertToDate(availability.secondInitialHour, startOfDay);
+          const secondRangeEnd = convertToDate(availability.secondFinalHour, startOfDay);
+
           const result = await Appointment.find({
-            professional: professional._id,
+            professional: req.params.id,
             date: {
               $gte: startOfDay,
-              $lte: endOfDay,
+              $lte: endOfDay
             },
-            disabled: false
-          }, {
-            date: 1,
-            customer: 1,
-            typeOfService: 1
+            disabled: false,
+            $or: [
+              {
+                date: {
+                  $lt: firstRangeStart // Turnos antes del primer rango de disponibilidad
+                }
+              },
+              {
+                date: {
+                  $gt: secondRangeEnd // Turnos después del segundo rango de disponibilidad
+                }
+              },
+              {
+                $and: [
+                  {
+                    date: {
+                      $gte: firstRangeEnd // Turnos después del primer rango de disponibilidad
+                    }
+                  },
+                  {
+                    date: {
+                      $lt: secondRangeStart // Turnos antes del segundo rango de disponibilidad
+                    }
+                  }
+                ]
+              }
+            ]
           }).populate("typeOfService");
 
           appointments.push(...result);
@@ -158,40 +193,8 @@ const verifyTimeAvailability = async (req, res, next) => {
 
     const appointments = await findAppointmentsOnSpecificDays(difDays);
 
-    // Filtrar las citas que quedan fuera del nuevo rango
-    const filteredAppointments = appointments.filter((appointment) => {
-      const appointmentDay = moment(appointment.date);
-      const dayIndex = appointmentDay.isoWeekday();
-
-      const newAvailability = newTimeAvailabities[dayOfWeek[dayIndex]];
-      const newStartTime = timeToMinutes(newAvailability.initialHour);
-      const newEndTime = timeToMinutes(newAvailability.finalHour);
-      const newSecondStartTime = timeToMinutes(
-        newAvailability.secondInitialHour
-      );
-      const newSecondEndTime = timeToMinutes(newAvailability.secondFinalHour);
-
-      const appointmentStartTime =
-        appointmentDay.hour() * 60 + appointmentDay.minute();
-      const appointmentEndTime =
-        appointmentStartTime + (appointment.duration || 0); // Considera duración si aplica
-
-      // Verifica si la cita está fuera del nuevo rango
-      const isOutsideNewRange =
-        (appointmentStartTime < newStartTime &&
-          appointmentEndTime <= newStartTime) ||
-        (appointmentStartTime >= newEndTime &&
-          appointmentEndTime > newEndTime) ||
-        (appointmentStartTime < newSecondStartTime &&
-          appointmentEndTime <= newSecondStartTime) ||
-        (appointmentStartTime >= newSecondEndTime &&
-          appointmentEndTime > newSecondEndTime);
-
-      return isOutsideNewRange;
-    });
-
     if (changeAppointment === "cancel") {
-      const objectIds = filteredAppointments.map((apo) => apo._id);
+      const objectIds = appointments.map((apo) => apo._id);
       await Appointment.updateMany(
         { _id: { $in: objectIds } },
         { $set: { disabled: true } }
@@ -199,10 +202,10 @@ const verifyTimeAvailability = async (req, res, next) => {
       return next();
     }
 
-    if (filteredAppointments.length === 0) {
+    if (appointments.length === 0) {
       return next();
     } else {
-      return res.status(400).send({ conflicts: filteredAppointments });
+      return res.status(400).send({ conflicts: appointments, length: appointments.length });
     }
   } catch (error) {
     console.error("Error:", error);
