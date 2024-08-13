@@ -130,7 +130,7 @@ const verifyTimeAvailability = async (req, res, next) => {
         const appointments = [];
 
         const convertToDate = (timeString, date) => moment(date).set({
-          hour: parseInt(timeString.split(':')[0]) - 3,
+          hour: parseInt(timeString.split(':')[0]),
           minute: parseInt(timeString.split(':')[1]),
           second: 0,
           millisecond: 0
@@ -145,10 +145,6 @@ const verifyTimeAvailability = async (req, res, next) => {
           const firstRangeEnd = convertToDate(availability.finalHour, startOfDay);
           const secondRangeStart = convertToDate(availability.secondInitialHour, startOfDay);
           const secondRangeEnd = convertToDate(availability.secondFinalHour, startOfDay);
-          console.log('First Range Start:', firstRangeStart);
-          console.log('First Range End:', firstRangeEnd);
-          console.log('Second Range Start:', secondRangeStart);
-          console.log('Second Range End:', secondRangeEnd);
 
           const result = await Appointment.find({
             professional: req.params.id,
