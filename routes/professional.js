@@ -92,6 +92,9 @@ const verifyTimeAvailability = async (req, res, next) => {
     }
 
     if (difDays.length === 0 || changeAppointment === "skip") {
+      if (changeAppointment === "skip") {
+        req.body.timeAvailabilities = timeAvailabilities
+      }
       return next();
     }
 
