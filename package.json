@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "@mercadopago/sdk-react": "^0.0.19",
@@ -16,6 +16,16 @@
     "mongoose": "^8.3.5",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
-    "nodemon": "^3.1.0"
+    "nodemon": "^3.1.0",
+    "@bot-whatsapp/bot": "latest",
+    "@bot-whatsapp/cli": "latest",
+    "@bot-whatsapp/database": "latest",
+    "@bot-whatsapp/provider": "latest",
+    "@bot-whatsapp/portal": "latest",
+    "mime-types": "2.1.35",
+    "mongodb": "^4.12.1",
+    "@whiskeysockets/baileys": "6.5.0",
+    "wa-sticker-formatter": "4.4.4",
+    "cache-manager": "5.2.4"
   }
 }
