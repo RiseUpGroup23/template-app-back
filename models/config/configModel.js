@@ -98,7 +98,8 @@ const ConfigSchema = new Schema({
       secondary: { type: String, default: "https://www.estudiostreaming.com.ar/wp-content/uploads/2020/10/tulogo.png" },
     },
     shopName: { type: String, default: "Nombre de la empresa" },
-    twoColors: { type: Boolean, default: true }
+    twoColors: { type: Boolean, default: true },
+    floatButtons: { type: String, default: "Todos" }
   },
 });
 
