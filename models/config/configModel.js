@@ -74,6 +74,10 @@ const ConfigSchema = new Schema({
     nextMonths: {
       type: Number,
       default: 2
+    },
+    cancellationWindow: {
+      type: Schema.Types.Mixed,
+      default: 24
     }
   },
   customization: {
