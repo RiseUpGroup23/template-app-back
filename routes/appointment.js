@@ -15,6 +15,43 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
       endTime: { $gte: lastMonth, $lte: endOfLastMonth },
     });
 
+    //borra los profes "deshabilitado" sin turnos
+    const professionalsWithoutAppointments = await Professional.aggregate([
+      {
+        $lookup: {
+          from: 'appointments',
+          localField: '_id',
+          foreignField: 'professional',
+          as: 'appointments'
+        }
+      },
+      {
+        $match: {
+          'appointments': { $size: 0 } 
+        }
+      }
+    ]);
+    
+    const professionalIds = professionalsWithoutAppointments.map(p => p._id);
+    
+    await Professional.deleteMany({ _id: { $in: professionalIds } });
+
+    //rt pa los typeof
+
+    const disabledTypes = await TypeOfService.find({ disabled: true });
+
+    for (const type of disabledTypes) {
+      // Buscar turnos asociados al tipo de servicio deshabilitado
+      const appointments = await Appointment.find({
+        typeOfService: type._id,
+        disabled: false
+      });
+
+      if (appointments.length === 0) {
+        // Eliminar el tipo de servicio si no tiene turnos asociados
+        await TypeOfService.findByIdAndDelete(type._id);
+      }
+    }
 
     // Obtener el profesional
     const professional = await Professional.findById(req.body.professional);

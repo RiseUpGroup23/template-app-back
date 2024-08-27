@@ -49,6 +49,10 @@ const professionalSchema = new Schema({
   typesOfServices: [
     { type: Schema.Types.ObjectId, ref: "TypeOfService", required: false },
   ],
+  disabled: {
+    type: Boolean,
+    default: false
+  }
 });
 
 const Professional = mongoose.model("Professional", professionalSchema);

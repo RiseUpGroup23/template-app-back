@@ -230,55 +230,48 @@ router.put("/professionals/:id", verifyTimeAvailability, async (req, res) => {
 });
 
 
-const verifyNoAppointments = async (req, res, next) => {
+const verifyAndHandleAppointments = async (req, res, next) => {
   try {
-    const { changeAppointment } = req.body.changeAppointment; 
-    
     const appointments = await Appointment.find({ 
       professional: req.params.id, 
       disabled: false 
-    });
-    
-    if (appointments.length === 0) {
-      return next(); 
-    }
+    }).populate('typeOfService');
 
-    if (changeAppointment === "skip") {
-      return res.status(400).send({ 
-        message: "El profesional no fue eliminado debido a que tiene turnos pendientes.", 
-        appointments 
-      });
+    if (appointments.length > 0) {
+      const changeAppointment = req.body.changeAppointment;
+
+      if (changeAppointment === "cancel") {
+        const appointmentIds = appointments.map(appointment => appointment._id);
+        await Appointment.updateMany(
+          { _id: { $in: appointmentIds } },
+          { $set: { disabled: true } }
+        );
+        return next();
+      } else if (changeAppointment === "skip") {
+        return next();
+      } else {
+        return res.status(400).send({ 
+          conflicts: appointments,
+          length: appointments.length 
+        });
+      }
+    } else {
+      next();
     }
-    
-    if (changeAppointment === "cancel") {
-      const objectIds = appointments.map(apo => apo._id);
-      await Appointment.updateMany(
-        { _id: { $in: objectIds } },
-        { $set: { disabled: true } }
-      );
-      return next(); 
-    }
-    
-    if (changeAppointment === "reprogram") {
-      return res.status(400).send({ 
-        message: "Hay turnos pendientes que necesitan ser reprogramados", 
-        appointments 
-      });
-    }
-    
-    return res.status(400).send({ 
-      message: "El profesional tiene turnos pendientes y no puede ser eliminado", 
-      appointments 
-    });
   } catch (error) {
-    res.status(500).send({ error: "Error al verificar turnos" });
+    res.status(500).send({ error: "Error al verificar las citas" });
   }
 };
 
+
 //delete
-router.delete("/professionals/:id", verifyNoAppointments, async (req, res) => {
+router.delete("/professionals/:id", verifyAndHandleAppointments, async (req, res) => {
   try {
-    const professional = await Professional.findByIdAndDelete(req.params.id);
+    const professional = await Professional.findByIdAndUpdate(
+      req.params.id,
+      { disabled: true },
+      { new: true }
+    );
     res.status(200).send(professional);
   } catch (error) {
     res.status(500).send(error);
