@@ -60,8 +60,54 @@ router.put("/typesOfServices/:id", async (req, res) => {
   }
 });
 
+const verifyNoAppointmentsForTypeOfService = async (req, res, next) => {
+  try {
+    const { changeAppointment } = req.body; // Opción seleccionada por el usuario
+
+    const appointments = await Appointment.find({
+      typeOfService: req.params.id,
+      disabled: false
+    });
+
+    if (appointments.length === 0) {
+      return next(); 
+    }
+
+    if (changeAppointment === "skip") {
+      return res.status(400).send({
+        message: "El tipo de servicio no fue eliminado debido a que tiene turnos pendientes.",
+        appointments
+      });
+    }
+
+    if (changeAppointment === "cancel") {
+      const objectIds = appointments.map(apo => apo._id);
+      await Appointment.updateMany(
+        { _id: { $in: objectIds } },
+        { $set: { disabled: true } }
+      );
+      return next(); 
+    }
+
+    if (changeAppointment === "reprogram") {
+      return res.status(400).send({
+        message: "Hay turnos pendientes que necesitan ser reprogramadas",
+        appointments
+      });
+    }
+
+    return res.status(400).send({
+      message: "El tipo de servicio tiene turnos pendientes y no puede ser eliminado",
+      appointments
+    });
+  } catch (error) {
+    res.status(500).send({ error: "Error al verificar las turnos" });
+  }
+};
+
+
 //delete
-router.delete("/typesOfServices/:id", async (req, res) => {
+router.delete("/typesOfServices/:id", verifyNoAppointmentsForTypeOfService, async (req, res) => {
   try {
     const typeOfService = await TypeOfService.findByIdAndDelete(req.params.id);
     if (!typeOfService) {
