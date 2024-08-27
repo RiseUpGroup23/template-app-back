@@ -67,6 +67,12 @@ const verifyTimeAvailability = async (req, res, next) => {
       const dayTimeA = timeAvailabilities[dayOfWeek[index]];
       const dayTimeNewA = newTimeAvailabities[dayOfWeek[index]];
 
+      if (!dayTimeNewA.active) {
+        const indexote = index === 6 ? 0 : index + 1;
+        difDays.push(indexote);
+        continue;
+      }
+
       // Convertir las horas a minutos
       const initialHourA = timeToMinutes(dayTimeA.initialHour);
       const finalHourA = timeToMinutes(dayTimeA.finalHour);
@@ -93,7 +99,7 @@ const verifyTimeAvailability = async (req, res, next) => {
 
     if (difDays.length === 0 || changeAppointment === "skip") {
       if (changeAppointment === "skip") {
-        req.body.timeAvailabilities = timeAvailabilities
+        req.body.timeAvailabilities = timeAvailabilities;
       }
       return next();
     }
@@ -129,56 +135,72 @@ const verifyTimeAvailability = async (req, res, next) => {
         );
         const appointments = [];
 
-        const convertToDate = (timeString, date) => moment(date).set({
-          hour: parseInt(timeString.split(':')[0]),
-          minute: parseInt(timeString.split(':')[1]),
-          second: 0,
-          millisecond: 0
-        }).toDate();
+        const convertToDate = (timeString, date) =>
+          moment(date)
+            .set({
+              hour: parseInt(timeString.split(":")[0]),
+              minute: parseInt(timeString.split(":")[1]),
+              second: 0,
+              millisecond: 0,
+            })
+            .toDate();
 
         for (const day of specificDays) {
           const startOfDay = day.startOf("day").toDate();
           const endOfDay = day.endOf("day").toDate();
 
-          const availability = newTimeAvailabities[day.format('dddd').toLowerCase()]
-          const firstRangeStart = convertToDate(availability.initialHour, startOfDay);
-          const firstRangeEnd = convertToDate(availability.finalHour, startOfDay);
-          const secondRangeStart = convertToDate(availability.secondInitialHour, startOfDay);
-          const secondRangeEnd = convertToDate(availability.secondFinalHour, startOfDay);
+          const availability =
+            newTimeAvailabities[day.format("dddd").toLowerCase()];
+          const firstRangeStart = convertToDate(
+            availability.initialHour,
+            startOfDay
+          );
+          const firstRangeEnd = convertToDate(
+            availability.finalHour,
+            startOfDay
+          );
+          const secondRangeStart = convertToDate(
+            availability.secondInitialHour,
+            startOfDay
+          );
+          const secondRangeEnd = convertToDate(
+            availability.secondFinalHour,
+            startOfDay
+          );
 
           const result = await Appointment.find({
             professional: req.params.id,
             date: {
               $gte: startOfDay,
-              $lte: endOfDay
+              $lte: endOfDay,
             },
             disabled: false,
             $or: [
               {
                 date: {
-                  $lt: firstRangeStart // Turnos antes del primer rango de disponibilidad
-                }
+                  $lt: firstRangeStart, // Turnos antes del primer rango de disponibilidad
+                },
               },
               {
                 date: {
-                  $gt: secondRangeEnd // Turnos después del segundo rango de disponibilidad
-                }
+                  $gt: secondRangeEnd, // Turnos después del segundo rango de disponibilidad
+                },
               },
               {
                 $and: [
                   {
                     date: {
-                      $gte: firstRangeEnd // Turnos después del primer rango de disponibilidad
-                    }
+                      $gte: firstRangeEnd, // Turnos después del primer rango de disponibilidad
+                    },
                   },
                   {
                     date: {
-                      $lt: secondRangeStart // Turnos antes del segundo rango de disponibilidad
-                    }
-                  }
-                ]
-              }
-            ]
+                      $lt: secondRangeStart, // Turnos antes del segundo rango de disponibilidad
+                    },
+                  },
+                ],
+              },
+            ],
           }).populate("typeOfService");
 
           appointments.push(...result);
@@ -205,7 +227,9 @@ const verifyTimeAvailability = async (req, res, next) => {
     if (appointments.length === 0) {
       return next();
     } else {
-      return res.status(400).send({ conflicts: appointments, length: appointments.length });
+      return res
+        .status(400)
+        .send({ conflicts: appointments, length: appointments.length });
     }
   } catch (error) {
     console.error("Error:", error);
@@ -229,19 +253,20 @@ router.put("/professionals/:id", verifyTimeAvailability, async (req, res) => {
   }
 });
 
-
 const verifyAndHandleAppointments = async (req, res, next) => {
   try {
-    const appointments = await Appointment.find({ 
-      professional: req.params.id, 
-      disabled: false 
-    }).populate('typeOfService');
+    const appointments = await Appointment.find({
+      professional: req.params.id,
+      disabled: false,
+    }).populate("typeOfService");
 
     if (appointments.length > 0) {
       const changeAppointment = req.body.changeAppointment;
 
       if (changeAppointment === "cancel") {
-        const appointmentIds = appointments.map(appointment => appointment._id);
+        const appointmentIds = appointments.map(
+          (appointment) => appointment._id
+        );
         await Appointment.updateMany(
           { _id: { $in: appointmentIds } },
           { $set: { disabled: true } }
@@ -250,9 +275,9 @@ const verifyAndHandleAppointments = async (req, res, next) => {
       } else if (changeAppointment === "skip") {
         return next();
       } else {
-        return res.status(400).send({ 
+        return res.status(400).send({
           conflicts: appointments,
-          length: appointments.length 
+          length: appointments.length,
         });
       }
     } else {
@@ -263,37 +288,40 @@ const verifyAndHandleAppointments = async (req, res, next) => {
   }
 };
 
-
 //delete
-router.delete("/professionals/:id", verifyAndHandleAppointments, async (req, res) => {
-  try {
-    const professional = await Professional.findByIdAndUpdate(
-      req.params.id,
-      { disabled: true },
-      { new: true }
-    );
-    res.status(200).send(professional);
-  } catch (error) {
-    res.status(500).send(error);
+router.delete(
+  "/professionals/:id",
+  verifyAndHandleAppointments,
+  async (req, res) => {
+    try {
+      const professional = await Professional.findByIdAndUpdate(
+        req.params.id,
+        { disabled: true },
+        { new: true }
+      );
+      res.status(200).send(professional);
+    } catch (error) {
+      res.status(500).send(error);
+    }
   }
-});
+);
 
 //agregar typeofser
 router.put("/professionalsAndServices/:id", async (req, res) => {
   const serviceId = req.body.serviceId;
-  
+
   try {
     const service = await TypeOfService.findById(serviceId);
     if (!service) {
       return res.status(404).send(error);
     }
-    
+
     const professional = await Professional.findByIdAndUpdate(
       req.params.id,
       { $addToSet: { typesOfServices: serviceId } },
       { new: true, runValidators: true }
     );
-    
+
     res.status(200).send(professional);
   } catch (error) {
     res.status(400).send(error);
