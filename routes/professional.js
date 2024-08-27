@@ -229,8 +229,54 @@ router.put("/professionals/:id", verifyTimeAvailability, async (req, res) => {
   }
 });
 
+
+const verifyNoAppointments = async (req, res, next) => {
+  try {
+    const { changeAppointment } = req.body.changeAppointment; 
+    
+    const appointments = await Appointment.find({ 
+      professional: req.params.id, 
+      disabled: false 
+    });
+    
+    if (appointments.length === 0) {
+      return next(); 
+    }
+
+    if (changeAppointment === "skip") {
+      return res.status(400).send({ 
+        message: "El profesional no fue eliminado debido a que tiene turnos pendientes.", 
+        appointments 
+      });
+    }
+    
+    if (changeAppointment === "cancel") {
+      const objectIds = appointments.map(apo => apo._id);
+      await Appointment.updateMany(
+        { _id: { $in: objectIds } },
+        { $set: { disabled: true } }
+      );
+      return next(); 
+    }
+    
+    if (changeAppointment === "reprogram") {
+      return res.status(400).send({ 
+        message: "Hay turnos pendientes que necesitan ser reprogramados", 
+        appointments 
+      });
+    }
+    
+    return res.status(400).send({ 
+      message: "El profesional tiene turnos pendientes y no puede ser eliminado", 
+      appointments 
+    });
+  } catch (error) {
+    res.status(500).send({ error: "Error al verificar turnos" });
+  }
+};
+
 //delete
-router.delete("/professionals/:id", async (req, res) => {
+router.delete("/professionals/:id", verifyNoAppointments, async (req, res) => {
   try {
     const professional = await Professional.findByIdAndDelete(req.params.id);
     res.status(200).send(professional);
@@ -242,19 +288,19 @@ router.delete("/professionals/:id", async (req, res) => {
 //agregar typeofser
 router.put("/professionalsAndServices/:id", async (req, res) => {
   const serviceId = req.body.serviceId;
-
+  
   try {
     const service = await TypeOfService.findById(serviceId);
     if (!service) {
       return res.status(404).send(error);
     }
-
+    
     const professional = await Professional.findByIdAndUpdate(
       req.params.id,
       { $addToSet: { typesOfServices: serviceId } },
       { new: true, runValidators: true }
     );
-
+    
     res.status(200).send(professional);
   } catch (error) {
     res.status(400).send(error);
