@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
 const { ConfigModel } = require("../models/config/configModel");
+const { Appointment } = require("../models/appointment/appointmentModel");
 
 router.post("/typesOfServices", async (req, res) => {
   try {
@@ -62,7 +63,7 @@ router.put("/typesOfServices/:id", async (req, res) => {
 
 const verifyNoAppointmentsForTypeOfService = async (req, res, next) => {
   try {
-    const { changeAppointment } = req.body; // Opción seleccionada por el usuario
+    const { changeAppointment } = req.body; 
 
     const appointments = await Appointment.find({
       typeOfService: req.params.id,
@@ -91,7 +92,7 @@ const verifyNoAppointmentsForTypeOfService = async (req, res, next) => {
 
     if (changeAppointment === "reprogram") {
       return res.status(400).send({
-        message: "Hay turnos pendientes que necesitan ser reprogramadas",
+        message: "Hay turnos pendientes que necesitan ser reprogramados",
         appointments
       });
     }
