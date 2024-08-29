@@ -18,17 +18,18 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
     //borra los profes "deshabilitado" sin turnos
     const professionalsWithoutAppointments = await Professional.aggregate([
       {
-        $lookup: {
-          from: 'appointments',
-          localField: '_id',
-          foreignField: 'professional',
-          as: 'appointments'
-        }
+      $lookup: {
+        from: 'appointments',
+        localField: '_id',
+        foreignField: 'professional',
+        as: 'appointments'
+      }
       },
       {
-        $match: {
-          'appointments': { $size: 0 } 
-        }
+      $match: {
+        'appointments': { $size: 0 },
+        'disabled': true
+      }
       }
     ]);
     
