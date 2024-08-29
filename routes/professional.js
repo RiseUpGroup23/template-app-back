@@ -271,7 +271,7 @@ const verifyAndHandleAppointments = async (req, res, next) => {
     }).populate("typeOfService");
 
     if (appointments.length > 0) {
-      const changeAppointment = req.body.changeAppointment;
+      const changeAppointment = req.query.action;
 
       if (changeAppointment === "cancel") {
         const appointmentIds = appointments.map(
