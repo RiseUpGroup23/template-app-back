@@ -67,8 +67,15 @@ const verifyTimeAvailability = async (req, res, next) => {
       const dayTimeA = timeAvailabilities[dayOfWeek[index]];
       const dayTimeNewA = newTimeAvailabities[dayOfWeek[index]];
 
-      if (!dayTimeNewA.active) {
+      if (!dayTimeNewA.active && dayTimeA.active) {
         const indexote = index === 6 ? 0 : index + 1;
+        newTimeAvailabities[dayOfWeek[index]] = {
+          active: false,
+          initialHour: "00:00",
+          finalHour: "00:00",
+          secondInitialHour: "00:00",
+          secondFinalHour: "00:00",
+        }
         difDays.push(indexote);
         continue;
       }
@@ -96,6 +103,7 @@ const verifyTimeAvailability = async (req, res, next) => {
         difDays.push(indexote);
       }
     }
+
 
     if (difDays.length === 0 || changeAppointment === "skip") {
       if (changeAppointment === "skip") {
