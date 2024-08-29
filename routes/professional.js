@@ -263,9 +263,11 @@ router.put("/professionals/:id", verifyTimeAvailability, async (req, res) => {
 
 const verifyAndHandleAppointments = async (req, res, next) => {
   try {
+    const fecha = new Date(new Date().getTime() + (-3 * 60 * 60 * 1000) - (30 * 60 * 1000));
     const appointments = await Appointment.find({
       professional: req.params.id,
       disabled: false,
+      date: { $gte: fecha }
     }).populate("typeOfService");
 
     if (appointments.length > 0) {
