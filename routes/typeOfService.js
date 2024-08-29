@@ -63,9 +63,11 @@ router.put("/typesOfServices/:id", async (req, res) => {
 
 const verifyAndHandleServiceAppointments = async (req, res, next) => {
   try {
+    const fecha = new Date(new Date().getTime() + (-3 * 60 * 60 * 1000) - (30 * 60 * 1000));
     const appointments = await Appointment.find({
       typeOfService: req.params.id,
-      disabled: false
+      disabled: false,
+      date: { $gte: fecha }
     }).populate('typeOfService');
 
     if (appointments.length > 0) {
@@ -81,9 +83,9 @@ const verifyAndHandleServiceAppointments = async (req, res, next) => {
       } else if (action === "skip") {
         return next();
       } else {
-        return res.status(400).send({ 
+        return res.status(400).send({
           conflicts: appointments,
-          length: appointments.length 
+          length: appointments.length
         });
       }
     } else {
