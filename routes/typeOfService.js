@@ -69,7 +69,7 @@ const verifyAndHandleServiceAppointments = async (req, res, next) => {
     }).populate('typeOfService');
 
     if (appointments.length > 0) {
-      const action = req.body.action;
+      const action = req.query.action;
 
       if (action === "cancel") {
         const appointmentIds = appointments.map(appointment => appointment._id);
