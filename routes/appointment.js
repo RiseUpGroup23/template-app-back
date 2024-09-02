@@ -18,23 +18,23 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
     //borra los profes "deshabilitado" sin turnos
     const professionalsWithoutAppointments = await Professional.aggregate([
       {
-      $lookup: {
-        from: 'appointments',
-        localField: '_id',
-        foreignField: 'professional',
-        as: 'appointments'
-      }
+        $lookup: {
+          from: 'appointments',
+          localField: '_id',
+          foreignField: 'professional',
+          as: 'appointments'
+        }
       },
       {
-      $match: {
-        'appointments': { $size: 0 },
-        'disabled': true
-      }
+        $match: {
+          'appointments': { $size: 0 },
+          'disabled': true
+        }
       }
     ]);
-    
+
     const professionalIds = professionalsWithoutAppointments.map(p => p._id);
-    
+
     await Professional.deleteMany({ _id: { $in: professionalIds } });
 
     //rt pa los typeof
@@ -324,9 +324,9 @@ router.get("/appointments/month/:year/:month", async (req, res) => {
 
     const appointments = await Appointment.find({
       date: { $gte: startOfMonth, $lte: endOfMonth },
-    })
-      .populate("professional")
-      .populate("typeOfService");
+    }).select('date');
+    // .populate("professional")
+    // .populate("typeOfService");
 
     res.status(200).send(appointments);
   } catch (error) {
