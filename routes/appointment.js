@@ -324,7 +324,7 @@ router.get("/appointments/month/:year/:month", async (req, res) => {
 
     const appointments = await Appointment.find({
       date: { $gte: startOfMonth, $lte: endOfMonth },
-    }).select('date disabled typeOfService');
+    }).select('date disabled typeOfService professional');
     // .populate("professional")
     // .populate("typeOfService");
 
