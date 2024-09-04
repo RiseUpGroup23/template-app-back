@@ -13,6 +13,7 @@ const appointmentSchema = new Schema({
     phoneNumber: { type: String, required: false },
   },
   disabled: { type: Boolean, default: false },
+  note: { type: String, required: false },
 });
 
 const Appointment = mongoose.model("Appointment", appointmentSchema);
