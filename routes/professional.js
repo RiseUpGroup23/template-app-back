@@ -130,96 +130,111 @@ const verifyTimeAvailability = async (req, res, next) => {
     // Función para buscar turnos en días específicos dentro de 12 meses
     const nextMonths = config.appointment.nextMonths;
 //
-    const findAppointmentsOnSpecificDays = async (daysOfWeek) => {
-      try {
-        const today = moment();
-        const startDate = today.add(1, "days").startOf("day").toDate();
-        const endDate = today.add(nextMonths, "months").endOf("day").toDate();
+const findAppointmentsOnSpecificDays = async (daysOfWeek) => {
+  try {
+    const today = moment();
+    const startDate = today.add(1, "days").startOf("day").toDate();
+    const endDate = today.add(nextMonths, "months").endOf("day").toDate();
 
-        const specificDays = getSpecificDaysInRange(
-          startDate,
-          endDate,
-          daysOfWeek
-        );
-        const appointments = [];
+    const specificDays = getSpecificDaysInRange(startDate, endDate, daysOfWeek);
+    const appointments = [];
 
-        const convertToDate = (timeString, date) =>
-          moment(date)
-            .set({
-              hour: parseInt(timeString.split(":")[0]),
-              minute: parseInt(timeString.split(":")[1]),
-              second: 0,
-              millisecond: 0,
-            })
-            .toDate();
+    const convertToDate = (timeString, date) =>
+      moment(date)
+        .set({
+          hour: parseInt(timeString.split(":")[0]),
+          minute: parseInt(timeString.split(":")[1]),
+          second: 0,
+          millisecond: 0,
+        })
+        .toDate();
 
-        for (const day of specificDays) {
-          const startOfDay = day.startOf("day").toDate();
-          const endOfDay = day.endOf("day").toDate();
+    for (const day of specificDays) {
+      const startOfDay = day.startOf("day").toDate();
+      const endOfDay = day.endOf("day").toDate();
 
-          const availability =
-            newTimeAvailabities[day.format("dddd").toLowerCase()];
-          const firstRangeStart = convertToDate(
-            availability.initialHour,
-            startOfDay
-          );
-          const firstRangeEnd = convertToDate(
-            availability.finalHour,
-            startOfDay
-          );
-          const secondRangeStart = convertToDate(
-            availability.secondInitialHour,
-            startOfDay
-          );
-          const secondRangeEnd = convertToDate(
-            availability.secondFinalHour,
-            startOfDay
-          );
+      const availability = newTimeAvailabities[day.format("dddd").toLowerCase()];
+      if (!availability) continue; // Skip days without availability data
 
-          const result = await Appointment.find({
-            professional: req.params.id,
-            date: {
-              $gte: startOfDay,
-              $lte: endOfDay,
-            },
-            disabled: false,
-            $or: [
-              {
-                date: {
-                  $lt: firstRangeStart, // Turnos antes del primer rango de disponibilidad
-                },
-              },
-              {
-                date: {
-                  $gt: secondRangeEnd, // Turnos después del segundo rango de disponibilidad
-                },
-              },
-              {
-                $and: [
-                  {
-                    date: {
-                      $gte: firstRangeEnd, // Turnos después del primer rango de disponibilidad
-                    },
-                  },
-                  {
-                    date: {
-                      $lt: secondRangeStart, // Turnos antes del segundo rango de disponibilidad
-                    },
-                  },
-                ],
-              },
-            ],
-          }).populate("typeOfService");
+      const firstRangeStart = convertToDate(availability.initialHour, startOfDay);
+      const firstRangeEnd = convertToDate(availability.finalHour, startOfDay);
+      const secondRangeStart = convertToDate(availability.secondInitialHour, startOfDay);
+      const secondRangeEnd = convertToDate(availability.secondFinalHour, startOfDay);
 
-          appointments.push(...result);
+      const result = await Appointment.find({
+        professional: req.params.id, // Ensure `req` is properly defined or passed
+        date: {
+          $gte: startOfDay,
+          $lte: endOfDay,
+        },
+        disabled: false,
+      }).populate("typeOfService");
+
+      // Adjust availability based on the duration of appointments
+      for (const appointment of result) {
+        const appointmentStart = new Date(appointment.date);
+        const appointmentEnd = appointment.startTime ? new Date(appointment.startTime) : new Date(appointment.date);
+        const duration = appointment.endTime ? (new Date(appointment.endTime) - appointmentStart) : (appointmentEnd - appointmentStart);
+
+        // Adjust the availability based on the appointment duration
+        const adjustedEndOfFirstRange = new Date(appointmentEnd.getTime());
+        const adjustedEndOfSecondRange = new Date(appointmentEnd.getTime());
+
+        if (appointmentStart < firstRangeEnd) {
+          firstRangeEnd = adjustedEndOfFirstRange; // Extend the end of the first range if needed
         }
 
-        return appointments;
-      } catch (error) {
-        console.error("Error finding appointments:", error);
-        throw error;
+        if (appointmentEnd > secondRangeStart) {
+          secondRangeStart = adjustedEndOfSecondRange; // Extend the start of the second range if needed
+        }
       }
-    };
+
+      // Get the appointments again based on the adjusted availability
+      const adjustedResult = await Appointment.find({
+        professional: req.params.id,
+        date: {
+          $gte: startOfDay,
+          $lte: endOfDay,
+        },
+        disabled: false,
+        $or: [
+          {
+            date: {
+              $lt: firstRangeStart,
+            },
+          },
+          {
+            date: {
+              $gt: secondRangeEnd,
+            },
+          },
+          {
+            $and: [
+              {
+                date: {
+                  $gte: firstRangeEnd,
+                },
+              },
+              {
+                date: {
+                  $lt: secondRangeStart,
+                },
+              },
+            ],
+          },
+        ],
+      }).populate("typeOfService");
+
+      appointments.push(...adjustedResult);
+    }
+
+    return appointments;
+  } catch (error) {
+    console.error("Error finding appointments:", error);
+    throw error;
+  }
+};
+
 //
     const appointments = await findAppointmentsOnSpecificDays(difDays);
 
