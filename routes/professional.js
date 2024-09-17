@@ -129,97 +129,82 @@ const verifyTimeAvailability = async (req, res, next) => {
 
     // Función para buscar turnos en días específicos dentro de 12 meses
     const nextMonths = config.appointment.nextMonths;
+//
+const findAppointmentsOnSpecificDays = async (daysOfWeek) => {
+  try {
+    const today = moment();
+    const startDate = today.add(1, "days").startOf("day").toDate();
+    const endDate = today.add(nextMonths, "months").endOf("day").toDate();
 
-    const findAppointmentsOnSpecificDays = async (daysOfWeek) => {
-      try {
-        const today = moment();
-        const startDate = today.add(1, "days").startOf("day").toDate();
-        const endDate = today.add(nextMonths, "months").endOf("day").toDate();
+    const specificDays = getSpecificDaysInRange(startDate, endDate, daysOfWeek);
+    const appointments = [];
 
-        const specificDays = getSpecificDaysInRange(
-          startDate,
-          endDate,
-          daysOfWeek
-        );
-        const appointments = [];
+    const convertToDate = (timeString, date) =>
+      moment(date)
+        .set({
+          hour: parseInt(timeString.split(":")[0]),
+          minute: parseInt(timeString.split(":")[1]),
+          second: 0,
+          millisecond: 0,
+        })
+        .toDate();
 
-        const convertToDate = (timeString, date) =>
-          moment(date)
-            .set({
-              hour: parseInt(timeString.split(":")[0]),
-              minute: parseInt(timeString.split(":")[1]),
-              second: 0,
-              millisecond: 0,
-            })
-            .toDate();
+    for (const day of specificDays) {
+      const startOfDay = day.startOf("day").toDate();
+      const endOfDay = day.endOf("day").toDate();
 
-        for (const day of specificDays) {
-          const startOfDay = day.startOf("day").toDate();
-          const endOfDay = day.endOf("day").toDate();
+      const availability = newTimeAvailabilities[day.format("dddd").toLowerCase()];
+      const firstRangeStart = convertToDate(availability.initialHour, startOfDay);
+      const firstRangeEnd = convertToDate(availability.finalHour, startOfDay);
+      const secondRangeStart = convertToDate(availability.secondInitialHour, startOfDay);
+      const secondRangeEnd = convertToDate(availability.secondFinalHour, startOfDay);
 
-          const availability =
-            newTimeAvailabities[day.format("dddd").toLowerCase()];
-          const firstRangeStart = convertToDate(
-            availability.initialHour,
-            startOfDay
-          );
-          const firstRangeEnd = convertToDate(
-            availability.finalHour,
-            startOfDay
-          );
-          const secondRangeStart = convertToDate(
-            availability.secondInitialHour,
-            startOfDay
-          );
-          const secondRangeEnd = convertToDate(
-            availability.secondFinalHour,
-            startOfDay
-          );
-
-          const result = await Appointment.find({
-            professional: req.params.id,
-            date: {
-              $gte: startOfDay,
-              $lte: endOfDay,
-            },
-            disabled: false,
+      const result = await Appointment.find({
+        professional: req.params.id,
+        disabled: false,
+        date: {
+          $gte: startOfDay,
+          $lte: endOfDay,
+        },
+        $or: [
+          {
+            // Verificar si el turno se extiende más allá del nuevo horario disponible
             $or: [
-              {
-                date: {
-                  $lt: firstRangeStart, // Turnos antes del primer rango de disponibilidad
-                },
-              },
-              {
-                date: {
-                  $gt: secondRangeEnd, // Turnos después del segundo rango de disponibilidad
-                },
-              },
-              {
-                $and: [
-                  {
-                    date: {
-                      $gte: firstRangeEnd, // Turnos después del primer rango de disponibilidad
-                    },
-                  },
-                  {
-                    date: {
-                      $lt: secondRangeStart, // Turnos antes del segundo rango de disponibilidad
-                    },
-                  },
-                ],
-              },
-            ],
-          }).populate("typeOfService");
+              { date: { $lt: firstRangeStart } }, // El inicio del turno es antes del rango
+              { endDate: { $gt: firstRangeEnd } }, // El final del turno es después del rango
+              { date: { $lt: secondRangeStart } }, // El inicio del turno es antes del segundo rango
+              { endDate: { $gt: secondRangeEnd } }, // El final del turno es después del segundo rango
+            ]
+          },
+          {
+            // Si un turno comienza antes de que termine el primer rango y se extiende más allá
+            $and: [
+              { date: { $lte: firstRangeEnd } },
+              { endDate: { $gte: firstRangeEnd } },
+            ]
+          },
+          {
+            // Si un turno empieza antes del segundo rango y se extiende más allá
+            $and: [
+              { date: { $lte: secondRangeEnd } },
+              { endDate: { $gte: secondRangeEnd } },
+            ]
+          }
+        ]
+      }).populate("typeOfService");
 
-          appointments.push(...result);
-        }
+      appointments.push(...result);
+    }
 
-        return appointments;
-      } catch (error) {
-        console.error("Error finding appointments:", error);
-        throw error;
-      }
-    };
+    return appointments;
+  } catch (error) {
+    console.error("Error finding appointments:", error);
+    throw error;
+  }
+};
+
+//
+
 
     const appointments = await findAppointmentsOnSpecificDays(difDays);
 
