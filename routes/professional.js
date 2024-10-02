@@ -185,41 +185,31 @@ const verifyTimeAvailability = async (req, res, next) => {
             disabled: false,
             $or: [
               {
-                // Turnos que empiezan o terminan antes del primer rango de disponibilidad
-                $or: [
-                  { startTime: { $lt: firstRangeStart } },
-                  { endTime: { $lt: firstRangeStart } },
-                ],
+                date: {
+                  $lt: firstRangeStart, // Turnos antes del primer rango de disponibilidad
+                },
               },
               {
-                // Turnos que empiezan o terminan después del segundo rango de disponibilidad
-                $or: [
-                  { startTime: { $gt: secondRangeEnd } },
-                  { endTime: { $gt: secondRangeEnd } },
-                ],
+                date: {
+                  $gt: secondRangeEnd, // Turnos después del segundo rango de disponibilidad
+                },
               },
               {
                 $and: [
                   {
-                    // Turnos que empiezan después del primer rango de disponibilidad
-                    // pero terminan antes del segundo rango de disponibilidad
-                    $or: [
-                      { startTime: { $gte: firstRangeEnd } },
-                      { endTime: { $gte: firstRangeEnd } },
-                    ],
+                    date: {
+                      $gte: firstRangeEnd, // Turnos después del primer rango de disponibilidad
+                    },
                   },
                   {
-                    // Turnos que empiezan antes del segundo rango de disponibilidad
-                    $or: [
-                      { startTime: { $lt: secondRangeStart } },
-                      { endTime: { $lt: secondRangeStart } },
-                    ],
+                    date: {
+                      $lt: secondRangeStart, // Turnos antes del segundo rango de disponibilidad
+                    },
                   },
                 ],
               },
             ],
           }).populate("typeOfService");
-          
 
           appointments.push(...result);
         }
