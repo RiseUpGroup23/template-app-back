@@ -185,31 +185,27 @@ const verifyTimeAvailability = async (req, res, next) => {
             disabled: false,
             $or: [
               {
-                date: {
-                  $lt: firstRangeStart, // Turnos antes del primer rango de disponibilidad
-                },
+                // Citas que empiezan o terminan antes del primer rango de disponibilidad
+                startTime: { $lt: firstRangeStart }, // Empieza antes del primer rango
               },
               {
-                date: {
-                  $gt: secondRangeEnd, // Turnos después del segundo rango de disponibilidad
-                },
+                // Citas que empiezan o terminan después del segundo rango de disponibilidad
+                endTime: { $gt: secondRangeEnd }, // Termina después del segundo rango (¡Esto es lo que faltaba corregir!)
               },
               {
+                // Citas que caen entre el final del primer rango y el inicio del segundo rango de disponibilidad
                 $and: [
                   {
-                    date: {
-                      $gte: firstRangeEnd, // Turnos después del primer rango de disponibilidad
-                    },
+                    startTime: { $gte: firstRangeEnd }, // Empieza después del primer rango
                   },
                   {
-                    date: {
-                      $lt: secondRangeStart, // Turnos antes del segundo rango de disponibilidad
-                    },
+                    endTime: { $lt: secondRangeStart }, // Termina antes del segundo rango
                   },
                 ],
               },
             ],
           }).populate("typeOfService");
+          
 
           appointments.push(...result);
         }
