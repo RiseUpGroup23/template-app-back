@@ -78,6 +78,10 @@ const ConfigSchema = new Schema({
     cancellationWindow: {
       type: Schema.Types.Mixed,
       default: 24
+    },
+    allowApposToday: {
+      type: Boolean,
+      default: true
     }
   },
   customization: {
