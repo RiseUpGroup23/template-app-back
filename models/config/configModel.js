@@ -112,10 +112,13 @@ const ConfigSchema = new Schema({
     },
     items: [{
       title: {
-        tipe: String
+        type: String
       },
       content: {
-        tipe: String
+        type: String
+      },
+      image: {
+        type: String
       }
     }]
   }
