@@ -105,6 +105,20 @@ const ConfigSchema = new Schema({
     twoColors: { type: Boolean, default: true },
     floatButtons: { type: String, default: "Todos" }
   },
+  articles: {
+    active: {
+      type: Boolean,
+      default: false
+    },
+    items: [{
+      title: {
+        tipe: String
+      },
+      content: {
+        tipe: String
+      }
+    }]
+  }
 });
 
 const ConfigModel = mongoose.model("ConfigSchema", ConfigSchema);
