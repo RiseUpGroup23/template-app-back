@@ -4,9 +4,7 @@ const { Preference, MercadoPagoConfig, Payment } = require("mercadopago");
 const axios = require("axios");
 const { Appointment } = require("../models/appointment/appointmentModel");
 
-// const TOKEN = process?.env?.MPTOKEN ?? ""
-const TOKEN =
-  "APP_USR-5122067603010426-040316-c74ec9a6ccb3f802c1cb5cdf8ebcde25-1693845695";
+const TOKEN = process?.env?.MPTOKEN ?? "APP_USR-5122067603010426-040316-c74ec9a6ccb3f802c1cb5cdf8ebcde25-1693845695"
 
 // Agrega credenciales
 const client = new MercadoPagoConfig({
