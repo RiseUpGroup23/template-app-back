@@ -121,6 +121,23 @@ const ConfigSchema = new Schema({
         type: String
       }
     }]
+  },
+  aboutus: {
+    active: {
+      type: Boolean,
+      default: false
+    },
+    items: [{
+      tab: {
+        type: String
+      },
+      content: {
+        type: String
+      },
+      image: {
+        type: String
+      }
+    }]
   }
 });
 
