@@ -122,7 +122,7 @@ const ConfigSchema = new Schema({
       }
     }]
   },
-  aboutus: {
+  about: {
     active: {
       type: Boolean,
       default: false
