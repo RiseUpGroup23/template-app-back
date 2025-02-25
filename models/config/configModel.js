@@ -128,7 +128,7 @@ const ConfigSchema = new Schema({
       default: false
     },
     items: [{
-      tab: {
+      title: {
         type: String
       },
       content: {
