@@ -349,10 +349,10 @@ router.get(
         return res.status(404).send("Professional not found");
       }
 
+      // Función para obtener el nombre del día de la semana
       const getDayOfWeek = (dateString) => {
         const date = new Date(dateString);
-        const dayOfWeek = date.getUTCDay(); //0 (domingo), 6 (sábado)
-
+        const dayOfWeek = date.getUTCDay(); // 0 (domingo) a 6 (sábado)
         const days = [
           "sunday",
           "monday",
@@ -362,13 +362,12 @@ router.get(
           "friday",
           "saturday",
         ];
-
         return days[dayOfWeek];
       };
 
       const dayOfWeek = getDayOfWeek(day);
 
-      //appo x dia x profesional
+      // Buscar todas las citas confirmadas para ese profesional en el día
       const startOfDay = new Date(day);
       startOfDay.setUTCHours(0, 0, 0, 0);
       const endOfDay = new Date(day);
@@ -380,20 +379,24 @@ router.get(
         disabled: false,
       });
 
-      // Preparar los horarios disponibles y no disponibles
-      const timeAvailabilitiesOfDay =
-        professional.timeAvailabilities[dayOfWeek];
-
+      // Preparar la disponibilidad horaria según el día de la semana
+      const timeAvailabilitiesOfDay = professional.timeAvailabilities[dayOfWeek];
       if (!timeAvailabilitiesOfDay) {
         return res.status(400).send("No availability");
       }
 
-      const { initialHour, finalHour, secondInitialHour, secondFinalHour } =
-        timeAvailabilitiesOfDay;
+      const {
+        initialHour,
+        finalHour,
+        secondInitialHour,
+        secondFinalHour,
+      } = timeAvailabilitiesOfDay;
+
       const { duration: serviceDuration } = await TypeOfService.findById(
         serviceId
       );
 
+      // Función para generar franjas horarias con el intervalo del servicio
       const generateTimeSlots = (start, end, interval) => {
         const startTime = new Date(`1970-01-01T${start}:00Z`);
         const copyStartTime = new Date(`1970-01-01T${start}:00Z`);
@@ -413,48 +416,51 @@ router.get(
 
       const allSchedules = [
         ...generateTimeSlots(initialHour, finalHour, serviceDuration),
-        ...generateTimeSlots(
-          secondInitialHour,
-          secondFinalHour,
-          serviceDuration
-        ),
+        ...generateTimeSlots(secondInitialHour, secondFinalHour, serviceDuration),
       ];
 
-      const unavailableSchedules = appointmentsConfirmed.flatMap((appt) => {
+      // Se crea un objeto para contar la cantidad de turnos en cada franja horaria
+      const slotCounts = {};
+
+      appointmentsConfirmed.forEach((appt) => {
         const startTime = new Date(appt.startTime);
         const endTime = new Date(appt.endTime);
-        let nuevoStart = new Date(appt.startTime);
-        let nuevoEnd = new Date(appt.endTime);
+        let adjustedStart = new Date(appt.startTime);
+        let adjustedEnd = new Date(appt.endTime);
 
+        // Se recorre allSchedules para ajustar el inicio y fin del turno según las franjas disponibles
         for (let i = 0; i < allSchedules.length; i++) {
           const time = allSchedules[i];
-          const hours = time.split(":")[0];
-          const minutes = time.split(":")[1];
-
-          const stringStart = new Date(startTime).toJSON().split("T");
+          const [hours, minutes] = time.split(":");
+          const stringStart = startTime.toJSON().split("T");
           const formattedStart =
             stringStart[0] + `T${hours}:${minutes}` + stringStart[1].slice(5);
-          const stringEnd = new Date(endTime).toJSON().split("T");
+          const stringEnd = endTime.toJSON().split("T");
           const formattedEnd =
             stringEnd[0] + `T${hours}:${minutes}` + stringEnd[1].slice(5);
 
           if (new Date(formattedStart) <= startTime) {
-            nuevoStart = new Date(formattedStart);
+            adjustedStart = new Date(formattedStart);
           }
 
           if (new Date(formattedEnd) >= endTime) {
-            nuevoEnd = new Date(formattedEnd);
+            adjustedEnd = new Date(formattedEnd);
             break;
           }
         }
-        const slots = [];
 
-        while (nuevoStart < nuevoEnd) {
-          slots.push(nuevoStart.toISOString().substring(11, 16));
-          nuevoStart.setMinutes(nuevoStart.getMinutes() + serviceDuration);
+        // Se generan todas las franjas horarias que cubre este turno y se acumula el conteo
+        while (adjustedStart < adjustedEnd) {
+          const slot = adjustedStart.toISOString().substring(11, 16);
+          slotCounts[slot] = (slotCounts[slot] || 0) + 1;
+          adjustedStart.setMinutes(adjustedStart.getMinutes() + serviceDuration);
         }
+      });
 
-        return slots;
+      // Se utiliza la propiedad maxAppos para determinar cuándo un horario ya alcanzó su límite
+      const maxAppos = professional.maxAppos || 1; // si no se define, se asume 1
+      const unavailableSchedules = allSchedules.filter((slot) => {
+        return (slotCounts[slot] || 0) >= maxAppos;
       });
 
       const timeAvailableAndtimeUnavailable = {

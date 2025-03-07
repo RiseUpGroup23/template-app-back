@@ -6,7 +6,7 @@ const { TypeOfService } = require("../models/typeOfService/typeOfServiceModel");
 
 const createOrUpdate = async (req, res, isUpdate = false) => {
   try {
-    //borra lo viejardo
+    // Borra los turnos antiguos
     const now = new Date();
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0); // Último día del mes pasado
@@ -15,7 +15,7 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
       endTime: { $gte: lastMonth, $lte: endOfLastMonth },
     });
 
-    //borra los profes "deshabilitado" sin turnos
+    // Borra los profesionales deshabilitados que no tienen turnos
     const professionalsWithoutAppointments = await Professional.aggregate([
       {
         $lookup: {
@@ -27,29 +27,23 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
       },
       {
         $match: {
-          'appointments': { $size: 0 },
-          'disabled': true
+          appointments: { $size: 0 },
+          disabled: true
         }
       }
     ]);
 
-    const professionalIds = professionalsWithoutAppointments.map(p => p._id);
-
+    const professionalIds = professionalsWithoutAppointments.map((p) => p._id);
     await Professional.deleteMany({ _id: { $in: professionalIds } });
 
-    //rt pa los typeof
-
+    // Procesar los tipos de servicio deshabilitados y borrarlos si no tienen turnos asociados
     const disabledTypes = await TypeOfService.find({ disabled: true });
-
     for (const type of disabledTypes) {
-      // Buscar turnos asociados al tipo de servicio deshabilitado
       const appointments = await Appointment.find({
         typeOfService: type._id,
-        disabled: false
+        disabled: false,
       });
-
       if (appointments.length === 0) {
-        // Eliminar el tipo de servicio si no tiene turnos asociados
         await TypeOfService.findByIdAndDelete(type._id);
       }
     }
@@ -66,7 +60,7 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
       return res.status(404).send({ error: "Type of Service not found" });
     }
 
-    // Extraer y analizar la fecha de la solicitud
+    // Extraer y analizar la fecha del turno
     const dateString = req.body.date;
     const date = new Date(dateString);
     const dayOfWeek = [
@@ -81,13 +75,13 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
     const hours = date.getUTCHours();
     const minutes = date.getUTCMinutes();
 
-    // Verificar disponibilidad para el día
+    // Verificar que exista disponibilidad para ese día
     const availability = professional.timeAvailabilities[dayOfWeek];
     if (!availability) {
       return res.status(400).send({ error: "No availability" });
     }
 
-    // Convertir las horas de disponibilidad a minutos
+    // Convertir los horarios de disponibilidad a minutos
     const availabilityStart =
       parseInt(availability.initialHour.split(":")[0]) * 60 +
       parseInt(availability.initialHour.split(":")[1]);
@@ -102,65 +96,48 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
       parseInt(availability.secondFinalHour.split(":")[1]);
 
     const appointmentTime = hours * 60 + minutes;
-
-    // Verificar que la hora del turno esté dentro del rango de disponibilidad
     const isAvailable =
-      (appointmentTime >= availabilityStart &&
-        appointmentTime <= availabilityEnd) ||
-      (appointmentTime >= availabilitySecondStart &&
-        appointmentTime <= availabilitySecondEnd);
+      (appointmentTime >= availabilityStart && appointmentTime <= availabilityEnd) ||
+      (appointmentTime >= availabilitySecondStart && appointmentTime <= availabilitySecondEnd);
     if (!isAvailable) {
       return res.status(400).send({
         error: "Appointment time is outside of professional's availability",
       });
     }
 
-    // Calcular el startTime y endTime basado en la duración del servicio
+    // Calcular startTime y endTime basado en la duración del servicio
     const startTime = new Date(dateString);
-    const endTime = new Date(
-      startTime.getTime() + typeOfService.duration * 60000
-    ); // Convertir duración a milisegundos
+    const endTime = new Date(startTime.getTime() + typeOfService.duration * 60000);
 
     // Buscar turnos existentes para el mismo profesional en el mismo día
     const startOfDay = new Date(date);
     startOfDay.setUTCHours(0, 0, 0, 0);
     const endOfDay = new Date(date);
     endOfDay.setUTCHours(23, 59, 59, 999);
-
     const appointmentsOfDay = await Appointment.find({
       professional: professional._id,
       date: { $gte: startOfDay, $lte: endOfDay },
       disabled: { $ne: true },
     });
 
-    // Verificar si ya existe una cita a la misma hora
-    if (!isUpdate) {
-      const existingAppointment = appointmentsOfDay.find(
-        (appt) => appt.date.getTime() === new Date(dateString).getTime()
-      );
-      if (existingAppointment) {
-        return res.status(400).send({
-          error:
-            "Appointment already exists for this professional at the specified date and time",
-        });
-      }
-    }
-
-    // Verificar solapamiento de citas
-    const overlappingAppointment = appointmentsOfDay.find((appt) => {
+    // Verificar solapamiento de citas permitiendo hasta maxAppos turnos por franja
+    // Se cuentan todos los turnos que se traslapan con el nuevo turno
+    const overlappingAppointments = appointmentsOfDay.filter((appt) => {
       const existingStartTime = appt.startTime.getTime();
       const existingEndTime = appt.endTime.getTime();
       return startTime < existingEndTime && endTime > existingStartTime;
     });
 
-    if (overlappingAppointment && !isUpdate) {
-      return res
-        .status(400)
-        .send({ error: "Appointment overlaps with an existing appointment" });
+    // Si ya se alcanzó la cantidad máxima de turnos para esa franja, se rechaza la creación/actualización
+    const maxAppos = professional.maxAppos || 1;
+    if (!isUpdate && overlappingAppointments.length >= maxAppos) {
+      return res.status(400).send({
+        error: "Appointment overlaps with existing appointments and the maximum allowed appointments for this time slot have been reached",
+      });
     }
 
     if (isUpdate) {
-      // Actualizar
+      // Actualizar el turno existente
       const appointment = await Appointment.findByIdAndUpdate(
         req.params.id,
         { ...req.body, startTime, endTime },
@@ -171,14 +148,13 @@ const createOrUpdate = async (req, res, isUpdate = false) => {
       }
       res.status(200).send(appointment);
     } else {
-      // Crear y guardar la nueva cita
+      // Crear y guardar el nuevo turno
       const appointment = new Appointment({
         ...req.body,
-        startTime: startTime,
-        endTime: endTime,
+        startTime,
+        endTime,
       });
       await appointment.save();
-
       res.status(201).send(appointment);
     }
   } catch (error) {

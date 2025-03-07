@@ -52,6 +52,10 @@ const professionalSchema = new Schema({
   disabled: {
     type: Boolean,
     default: false
+  },
+  maxAppos: {
+    type: Number,
+    default: 1
   }
 });
 
