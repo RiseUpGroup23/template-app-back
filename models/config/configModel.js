@@ -18,6 +18,14 @@ const ConfigSchema = new Schema({
     footer: {
       type: String,
       default: "Descripción de la empresa",
+    },
+    profHeader: {
+      type: String,
+      default: "Elegí a tu profesional",
+    },
+    serviceHeader: {
+      type: String,
+      default: "Elegí que servicio necesitas",
     }
   },
   imagePresentation: {
